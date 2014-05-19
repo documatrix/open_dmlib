@@ -4,13 +4,13 @@ foreach(file_data ${list_data})
 		install(DIRECTORY
 			${file_data}
 		DESTINATION
-			share/doc/dmtestlib
+			share/doc/open_dmlib
 		)
 	ELSE()
 		install(FILES
 			${file_data}
 		DESTINATION
-			share/doc/dmtestlib
+			share/doc/open_dmlib
 		)
 	ENDIF()
 endforeach()
