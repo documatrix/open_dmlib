@@ -1010,8 +1010,8 @@ namespace OpenDMLib
     public DMDateTime.local( int year, int month, int day, int hour, int minute, double seconds )
     {
       this.time = Time.local( time_t( ) );
-      this.time.year = year;
-      this.time.month = month;
+      this.time.year = year - 1900;
+      this.time.month = month - 1;
       this.time.day = day;
       this.time.hour = hour;
       this.time.minute = minute;
