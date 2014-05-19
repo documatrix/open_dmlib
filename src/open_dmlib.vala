@@ -1064,6 +1064,14 @@ namespace OpenDMLib
       return this.time.day;
     }
 
+    /**
+     * @see DateTime.get_day_of_week
+     */
+    public int get_day_of_week( )
+    {
+      return this.time.weekday;
+    }
+
     public int64 to_unix( )
     {
       return (int64)this.time.mktime( );
