@@ -1,4 +1,5 @@
 using Testlib;
+using DBLib;
 
 public class TestDBLib
 {
@@ -30,6 +31,22 @@ public class TestDBLib
         TestDBLib.default_teardown
       )
     );
+    ts_connection.add(
+      new GLib.TestCase(
+        "test_f_execute",
+        TestDBLib.default_setup,
+        TestDBLib.test_connection_f_execute,
+        TestDBLib.default_teardown
+      )
+    );
+    ts_connection.add(
+      new GLib.TestCase(
+        "test_f_escape",
+        TestDBLib.default_setup,
+        TestDBLib.test_connection_f_escape,
+        TestDBLib.default_teardown
+      )
+    );
     
     ts_dblib.add_suite( ts_connection );
 
@@ -47,6 +64,40 @@ public class TestDBLib
     ts_mysql.add_suite( ts_mysql_connection );
 
     ts_dblib.add_suite( ts_mysql );
+
+    GLib.TestSuite ts_statement = new GLib.TestSuite( "Statement" );
+    
+    ts_statement.add(
+      new GLib.TestCase(
+        "test_n",
+        TestDBLib.default_setup,
+        TestDBLib.test_statement_n,
+        TestDBLib.default_teardown
+      )
+    );
+    
+    ts_dblib.add_suite( ts_statement );
+
+    GLib.TestSuite ts_result = new GLib.TestSuite( "Result" );
+    
+    ts_result.add(
+      new GLib.TestCase(
+        "test_f_fetchrow_array",
+        TestDBLib.default_setup,
+        TestDBLib.test_result_f_fetchrow_array,
+        TestDBLib.default_teardown
+      )
+    );
+    ts_result.add(
+      new GLib.TestCase(
+        "test_f_fetchrow_hash",
+        TestDBLib.default_setup,
+        TestDBLib.test_result_f_fetchrow_hash,
+        TestDBLib.default_teardown
+      )
+    );
+    
+    ts_dblib.add_suite( ts_result );
     
     GLib.Test.run( );
     return 0;
@@ -98,6 +149,89 @@ public class TestDBLib
   }
 
   /**
+   * This testscase tests the constructor of the Statement class.
+   */
+  public static void test_statement_n( )
+  {
+    DBLib.Connection? c = null;
+
+    try
+    {
+      c = DBLib.Connection.connect( DBLib.DBType.MYSQL, "hostname=localhost;database=mysql", "root", null );
+      assert( c != null );
+      assert( c.dsn != null );
+    }
+    catch ( DBLib.DBError.CONNECTION_ERROR e )
+    {
+      assert_not_reached( );
+    }
+
+    string code = "select * from user";
+    Statement s = new Statement( c, code );
+    assert( s != null );
+    assert( s.code == code );
+    assert( s.conn == c );
+  }
+
+  /**
+   * This testscase tests the execute of the Connection class specifing parameters.
+   */
+  public static void test_connection_f_execute( )
+  {
+    DBLib.Connection? c = null;
+
+    try
+    {
+      c = DBLib.Connection.connect( DBLib.DBType.MYSQL, "hostname=localhost;database=mysql", "root", null );
+      assert( c != null );
+      assert( c.dsn != null );
+    }
+    catch ( DBLib.DBError.CONNECTION_ERROR e )
+    {
+      assert_not_reached( );
+    }
+
+    try
+    {
+      string code = "select * from user where User = ?";
+      Statement s = c.execute( code, "root" );
+      assert( s != null );
+      assert( s.code == code );
+      assert( s.conn == c );
+      assert( s.result != null );
+    }
+    catch ( Error e )
+    {
+      assert_not_reached( );
+    }
+  }
+
+  /**
+   * This testscase tests the escape method of the Connection class.
+   */
+  public static void test_connection_f_escape( )
+  {
+    DBLib.Connection? c = null;
+
+    try
+    {
+      c = DBLib.Connection.connect( DBLib.DBType.MYSQL, "hostname=localhost;database=mysql", "root", null );
+      assert( c != null );
+      assert( c.dsn != null );
+    }
+    catch ( DBLib.DBError.CONNECTION_ERROR e )
+    {
+      assert_not_reached( );
+    }
+
+    assert( c.escape( "value" ) == "\"value\"" );
+    assert( c.escape( "value\"" ) == "\"value\\\"\"" );
+    assert( c.escape( "value'" ) == "\"value\\'\"" );
+    assert( c.escape( "value\\" ) == "\"value\\\\\"" );
+    assert( c.escape( null ) == "NULL" );
+  }
+  
+  /**
    * This is the default setup method for the DBLib tests.
    * It will setup a DMLogger.Logger object and then invoke the default_setup method from Testlib.
    */
@@ -120,5 +254,82 @@ public class TestDBLib
       DMLogger.log.stop( );
     }
     Testlib.default_teardown( );
+  }
+
+  /**
+   * This testscase tests the fetchrow_array method of the DBLib.Result object.
+   */
+  public static void test_result_f_fetchrow_array( )
+  {
+    DBLib.Connection? c = null;
+
+    try
+    {
+      c = DBLib.Connection.connect( DBLib.DBType.MYSQL, "hostname=localhost;database=mysql", "root", null );
+      assert( c != null );
+      assert( c.dsn != null );
+    }
+    catch ( DBLib.DBError.CONNECTION_ERROR e )
+    {
+      assert_not_reached( );
+    }
+
+    try
+    {
+      string code = "select User from user where User = ? limit 1";
+      Statement s = c.execute( code, "root" );
+      assert( s != null );
+      assert( s.result != null );
+
+      string[]? row = s.result.fetchrow_array( );
+      assert( row != null );
+      assert( row.length == 1 );
+      assert( row[ 0 ] == "root" );
+
+      row = s.result.fetchrow_array( );
+      assert( row == null );
+    }
+    catch ( Error e )
+    {
+      assert_not_reached( );
+    }
+  }
+
+  /**
+   * This testscase tests the fetchrow_hash method of the DBLib.Result object.
+   */
+  public static void test_result_f_fetchrow_hash( )
+  {
+    DBLib.Connection? c = null;
+
+    try
+    {
+      c = DBLib.Connection.connect( DBLib.DBType.MYSQL, "hostname=localhost;database=mysql", "root", null );
+      assert( c != null );
+      assert( c.dsn != null );
+    }
+    catch ( DBLib.DBError.CONNECTION_ERROR e )
+    {
+      assert_not_reached( );
+    }
+
+    try
+    {
+      string code = "select User from user where User = ? limit 1";
+      Statement s = c.execute( code, "root" );
+      assert( s != null );
+      assert( s.result != null );
+
+      HashTable<string?,string?>? row = s.result.fetchrow_hash( );
+      assert( row != null );
+      assert( row[ "User" ] == "root" );
+
+      row = s.result.fetchrow_hash( );
+      assert( row == null );
+    }
+    catch ( Error e )
+    {
+      assert_not_reached( );
+    }
   }
 }

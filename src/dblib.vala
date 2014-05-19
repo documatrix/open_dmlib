@@ -11,7 +11,9 @@ namespace DBLib
    */
   public errordomain DBError
   {
-    CONNECTION_ERROR;
+    CONNECTION_ERROR,
+    STATEMENT_ERROR,
+    RESULT_ERROR;
   }
 
   /**
@@ -55,12 +57,10 @@ namespace DBLib
         case DBType.MYSQL:
           DMLogger.log.debug( 0, false, "Connecting to a MySQL database using connection string ${1}, user ${2} and password ${3}", connection_string, user ?? "(null)", password ?? "(null)" );
           return new DBLib.MySQL.Connection( dsn, user, password );
-          break;
 
         default:
           throw new DBError.CONNECTION_ERROR( "Undefined database type passed!" );
       }
-      return null;
     }
 
     /**
@@ -72,6 +72,43 @@ namespace DBLib
     {
       return new Statement( this, stmt );
     }
+
+    /**
+     * This method will execute a given statement.
+     * The statement will be prepared first. Then the given parameters will be substituted.
+     * Then the statement is executed.
+     * @param stmt A string which will be used as statement code.
+     * @param ... Values which will be used to replace given question marks with the escaped values.
+     * @return The prepared and executed statement.
+     * @throws DBLib.DBError.STATEMENT_ERROR if an error occurs while executing the statement.
+     * @throws DBLib.DBError.RESULT_ERROR if an error occurs while fetching the resultset.
+     */
+    public DBLib.Statement execute( string stmt, ... ) throws DBLib.DBError.STATEMENT_ERROR, DBLib.DBError.RESULT_ERROR
+    {
+      va_list params = va_list( );
+      return new Statement.with_params( this, stmt, params ).execute( ); 
+    }
+
+    /**
+     * This method will escape the given string using the database specific escape method.
+     * @param val The value which should be escaped so it can be used in a statement as string value.
+     * @return The given value which was escaped using the database specific escape method.
+     */
+    public abstract string escape( string? val );
+
+    /**
+     * This method will execute the given query using the database specific execute_query method.
+     * @param code The query code which should be executed.
+     * @throws DBLib.DBError.STATEMENT_ERROR when an error occurs while executing the given query.
+     */
+    public abstract void execute_query( string code ) throws DBLib.DBError.STATEMENT_ERROR;
+
+    /**
+     * This method will fetch the current result using the database specific connector.
+     * @param server_side_result @see DBLib.Result.server_side_result
+     * @throws DBLib.DBError.RESULT_ERROR if an error occured while fetching the result.
+     */
+    public abstract DBLib.Result get_result( bool server_side_result ) throws DBLib.DBError.RESULT_ERROR; 
   }
 
   /**
@@ -113,10 +150,50 @@ namespace DBLib
      * @param key A key whichs value should be returned.
      * @return The value for the given key.
      */
-    public string get( string key )
+    public new string get( string key )
     {
       return this.values[ key ];
     }
+  }
+
+  /**
+   * Objects of this class represent a resultset which was fetched from the database server.
+   */
+  public abstract class Result : GLib.Object
+  {
+    /**
+     * This variable indicates if the resultset should be stored on the server or stored on the client.
+     */
+    public bool server_side_result;
+
+    /**
+     * The connection which should be used to fetch the resultset.
+     */
+    public DBLib.Connection conn;
+
+    /**
+     * This constructor creates a new result object using a given connection and server_side_result setting.
+     * @param conn The connection to use to fetch the resultset.
+     * @param server_side_result @see DBLib.Result.server_side_result.
+     */
+    public Result( DBLib.MySQL.Connection conn, bool server_side_result )
+    {
+      this.conn = conn;
+      this.server_side_result = server_side_result;
+    }
+
+    /**
+     * This method will fetch the next row from the current resultset and will return the values as hash.
+     * The hash keys are the column names returned from the database.
+     * @return The next row in the resultset or null if no more rows exist.
+     */
+    public abstract HashTable<string?,string?>? fetchrow_hash( );
+
+    /**
+     * This method will fetch the next row from the current resultset and will return the values as array.
+     * @return The next row in the resultset or null if no more rows exist.
+     */
+    public abstract string[]? fetchrow_array( );
   }
 
   /**
@@ -133,6 +210,16 @@ namespace DBLib
      * This is the code of the statement.
      */
     public string code;
+
+    /**
+     * This array may contain parameters which will used to generate the final code.
+     */
+    private string?[] params = { };
+
+    /**
+     * This variable contains the result of the query (even if the statement was no select statement).
+     */
+    public DBLib.Result result;
     
     /**
      * This constructor creates a new Statement object which will be executed on the given connection.
@@ -143,6 +230,94 @@ namespace DBLib
     {
       this.conn = conn;
       this.code = code;
+    }
+
+    /**
+     * This constructor creates a new Statement object which will be executed on the given connection.
+     * It will also replace the given parameters from a va_list with the quotation marks in the statement code.
+     * @param conn A connection object which will be used to execute the statement.
+     * @param code The statement code.
+     * @param params A va_list object which may contain strings.
+     */
+    public Statement.with_params( Connection conn, string code, va_list params )
+    {
+      this( conn, code );
+
+      unowned string? param;
+      while ( ( param = params.arg( ) ) != null )
+      {
+        this.params += param;
+      }
+    }
+
+    /**
+     * This method will generate the final statement code using the given code and specified parameters.
+     * It will replace question marks in the statement code and replace them with the escaped params.
+     * @return The final statement code.
+     * @throws DBLib.DBError.STATEMENT_ERROR if an error occurs while replacing the parameters.
+     */
+    public string get_final_code( ) throws DBLib.DBError.STATEMENT_ERROR
+    {
+      char c;
+      int code_length = this.code.length;
+      int next_parameter = 0;
+      StringBuilder final_code = new StringBuilder.sized( code_length );
+
+      for ( int i = 0; i < code_length; i ++ )
+      {
+        c = this.code[ i ];
+
+        if ( c == '?' )
+        {
+          /* Get the next parameter and escape it. */
+          if ( next_parameter >= this.params.length )
+          {
+            /* There is no more parameter! */
+            DMLogger.log.error( 0, false, "Error while generating final statement code for statement ${1}! Expected ${1} parameters but only ${3} were sepcified!", this.code, ( next_parameter + 1 ).to_string( ), this.params.length.to_string( )
+            );
+            for ( int j = 0; j < this.params.length; j ++ )
+            {
+              DMLogger.log.error( 0, false, "Parameter ${1}: ${2}", ( j + 1 ).to_string( ), this.params[ j ] ?? "NULL" );
+            }
+            throw new DBLib.DBError.STATEMENT_ERROR( "Error while generating final statement code for statement %s! Expected %d parameters but only %d were sepcified!", this.code, next_parameter + 1, this.params.length );
+          }
+
+          final_code.append( this.conn.escape( this.params[ next_parameter ] ) );
+          next_parameter ++;
+        }
+        else
+        {
+          final_code.append_c( c );
+        }
+      }
+
+      return final_code.str;
+    }
+
+    /**
+     * This method will replace the question marks in the statement code by the given parameters and will execute
+     * the statement.
+     * @param server_side_result This parameter indicates if the result of the statement should be stored on the server (true) or loaded to the client (false).
+     * @return The executed statement.
+     * @throws DBLib.DBError.STATEMENT_ERROR if an error occurs while replacing the parameters or while executing the statement.
+     * @throws DBLib.DBError.RESULT_ERROR if an error occurs while fetching the resultset.
+     */
+    public DBLib.Statement execute( bool server_side_result = false ) throws DBLib.DBError.STATEMENT_ERROR, DBLib.DBError.RESULT_ERROR
+    {
+      string final_code;
+      if ( this.params.length > 0 )
+      {
+        final_code = this.get_final_code( );
+      }
+      else
+      {
+        final_code = this.code;
+      }
+
+      this.conn.execute_query( final_code );
+      this.result = this.conn.get_result( server_side_result );
+
+      return this;
     }
   }
 }
