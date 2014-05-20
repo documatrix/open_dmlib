@@ -51,7 +51,7 @@ namespace DBLib
       DMLogger.log.debug( 0, false, "Connecting to database." );
 
       DataSourceName dsn = new DataSourceName( connection_string );
-      
+
       switch ( db_type )
       {
         case DBType.MYSQL:
@@ -86,7 +86,7 @@ namespace DBLib
     public DBLib.Statement execute( string stmt, ... ) throws DBLib.DBError.STATEMENT_ERROR, DBLib.DBError.RESULT_ERROR
     {
       va_list params = va_list( );
-      return new Statement.with_params( this, stmt, params ).execute( ); 
+      return new Statement.with_params( this, stmt, params ).execute( );
     }
 
     /**
@@ -108,12 +108,18 @@ namespace DBLib
      * @param server_side_result @see DBLib.Result.server_side_result
      * @throws DBLib.DBError.RESULT_ERROR if an error occured while fetching the result.
      */
-    public abstract DBLib.Result get_result( bool server_side_result ) throws DBLib.DBError.RESULT_ERROR; 
+    public abstract DBLib.Result get_result( bool server_side_result ) throws DBLib.DBError.RESULT_ERROR;
+
+    /**
+     * This method will return the last auto_incremented value.
+     * It will try to get this value using a method on the database specific connector.
+     */
+    public abstract uint64 get_insert_id( );
   }
 
   /**
    * This class can be used to parse and use data source names.
-   */ 
+   */
   public class DataSourceName : GLib.Object
   {
     /**
@@ -220,7 +226,7 @@ namespace DBLib
      * This variable contains the result of the query (even if the statement was no select statement).
      */
     public DBLib.Result result;
-    
+
     /**
      * This constructor creates a new Statement object which will be executed on the given connection.
      * @param conn A connection object which will be used to execute the statement.

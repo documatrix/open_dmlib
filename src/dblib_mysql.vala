@@ -13,7 +13,7 @@ namespace DBLib
        * The MySQL database handle.
        */
       public Mysql.Database dbh;
-   
+
       /**
        * This constructor will create a new database connection to a MySQL database.
        * @param dsn A DataSourceName object containing the informations which will be passed to the MySQL library.
@@ -24,7 +24,7 @@ namespace DBLib
       public Connection( DataSourceName dsn, string? user, string? password ) throws DBLib.DBError.CONNECTION_ERROR
       {
         this.dsn = dsn;
-        
+
         this.dbh = new Mysql.Database( );
 
         uint port = 0;
@@ -72,6 +72,14 @@ namespace DBLib
       public override DBLib.Result get_result( bool server_side_result ) throws DBLib.DBError.RESULT_ERROR
       {
         return new DBLib.MySQL.Result( this, server_side_result );
+      }
+
+      /**
+       * @see DBLib.Connection.get_insert_id
+       */
+      public override uint64 get_insert_id( )
+      {
+        return this.dbh.insert_id( );
       }
     }
 
