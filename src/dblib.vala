@@ -257,6 +257,16 @@ namespace DBLib
     }
 
     /**
+     * This method can be used to set the statement parameters.
+     * It will overwrite any previously set parameters.
+     */
+    public void set_params( string?[] params )
+    {
+      this.params = params;
+    }
+
+
+    /**
      * This method will generate the final statement code using the given code and specified parameters.
      * It will replace question marks in the statement code and replace them with the escaped params.
      * @return The final statement code.
