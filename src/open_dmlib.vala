@@ -383,6 +383,20 @@ namespace OpenDMLib
       f_src.copy( f_dst, FileCopyFlags.OVERWRITE );
     }
 
+    /**
+     * This method can be used to move an existing file to a destination.
+     * If the given destination file exists the move method will overwrite it.
+     * @param src The name of the file which should be moved.
+     * @param dst The destination of the move method.
+     * @throws Error if an error occurs while moving.
+     */
+    public void move( string src, string dst ) throws Error
+    {
+      File f_src = File.new_for_path( src );
+      File f_dst = File.new_for_path( dst );
+      f_src.move( f_dst, FileCopyFlags.OVERWRITE );
+    }
+
     public string? get_mime_type( string filename ) throws Error
     {
       GLib.File f = GLib.File.new_for_path( filename );
