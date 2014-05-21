@@ -43,6 +43,17 @@ namespace OpenDMLib
   }
 
   /**
+   * This method gets the return code of a Posix.system command
+   * and returns it as normal exit status value.
+   * @param status The return code of a Posix.system command.
+   * @return The exit status.
+   */
+  public int32 get_exit_status( int status )
+  {
+    return ( ( (status) & 0xff00 ) >> 8 );
+  }
+
+  /**
    * This method tries to determine the current running operating system using some
    * environment variables.
    * @return linx, MSWin32 or unknown.
