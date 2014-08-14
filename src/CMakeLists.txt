@@ -34,7 +34,7 @@ CUSTOM_VAPIS
 GENERATE_HEADER
   open_dmlib
 OPTIONS
---thread -g --vapidir=${CMAKE_INSTALL_PREFIX}/share/vala/vapi
+--thread -g --vapidir=${CMAKE_INSTALL_PREFIX}/share/vala/vapi --target-glib=2.32
 )
 
 add_library(
@@ -54,13 +54,23 @@ set(LIBS         "")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libopen_dmlib.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/${OPEN_DMLIB_NAME}.pc @ONLY)
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
+# Install shared object
+install(
+TARGETS
+  ${OPEN_DMLIB_NAME}
+LIBRARY ARCHIVE DESTINATION
+lib/ 
+)
+else()
 # Install shared object
 install(
 TARGETS
   ${OPEN_DMLIB_NAME}
 LIBRARY DESTINATION
-  lib/
+lib/
 )
+endif( )
 
 # Install header files
 install(
