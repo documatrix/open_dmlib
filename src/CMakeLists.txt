@@ -34,7 +34,7 @@ CUSTOM_VAPIS
 GENERATE_HEADER
   open_dmlib
 OPTIONS
---thread -g --vapidir=${CMAKE_INSTALL_PREFIX}/share/vala/vapi --target-glib=2.32
+--thread -g --vapidir=. --vapidir=${CMAKE_INSTALL_PREFIX}/share/vala/vapi --target-glib=2.32
 )
 
 add_library(
