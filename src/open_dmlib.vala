@@ -384,6 +384,49 @@ namespace OpenDMLib
     }
 
     /**
+     * You can use this method to copy a folder from src to dst recursively.
+     * If the given destination exists the copy_r method will overwrite it.
+     * @param src The name of the file or folder which should be copied.
+     * @param dst The destination of the copy_r method.
+     * @param flags The @see GLib.FileCopyFlags which should be used for copying.
+     * @throws Error if an error occurs while copying.
+     */
+    public void copy_r( string src, string dst, FileCopyFlags flags = GLib.FileCopyFlags.OVERWRITE ) throws Error
+    {
+      File f_src = File.new_for_path( src );
+      File f_dst = File.new_for_path( dst );
+
+      GLib.FileType src_type = f_src.query_file_type( GLib.FileQueryInfoFlags.NONE, null );
+      if ( src_type == GLib.FileType.DIRECTORY )
+      {
+        f_dst.make_directory( null );
+        f_src.copy_attributes( f_dst, flags, null );
+
+        string src_path = f_src.get_path( );
+        string dest_path = f_dst.get_path( );
+
+        FileEnumerator enumerator = f_src.enumerate_children(
+          GLib.FileAttribute.STANDARD_NAME,
+          GLib.FileQueryInfoFlags.NONE,
+          null
+        );
+
+        for ( FileInfo? info = enumerator.next_file( null ); info != null; info = enumerator.next_file( null ) )
+        {
+          OpenDMLib.IO.copy_r(
+            Path.build_filename( src_path, info.get_name( ) ),
+            Path.build_filename( dest_path, info.get_name( ) ),
+            flags
+          );
+        }
+      }
+      else if ( src_type == GLib.FileType.REGULAR )
+      {
+        f_src.copy( f_dst, flags, null );
+      }
+    }
+
+    /**
      * This method can be used to move an existing file to a destination.
      * If the given destination file exists the move method will overwrite it.
      * @param src The name of the file which should be moved.
