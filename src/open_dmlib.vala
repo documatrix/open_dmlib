@@ -967,12 +967,20 @@ namespace OpenDMLib
   /**
    * This method returns a name for a temporary file.
    * The returned filename should be unique.
+   * @param include_tmp_dir This flag specifies if the method should just
+   *        return the filename (false) or also the tmp directory (true).
    * @return A temporary filename.
    */
-  public string get_temp_file( )
+  public string get_temp_file( bool include_tmp_dir = true )
   {
-    string fnam = OpenDMLib.get_dir( Environment.get_tmp_dir( ) ) + OpenDMLib.getpid( ).to_string( ) + "_" + Random.next_int( ).to_string( ) + ".tmp";
-    return fnam;
+    if ( include_tmp_dir )
+    {
+      return OpenDMLib.get_dir( Environment.get_tmp_dir( ) ) + OpenDMLib.getpid( ).to_string( ) + "_" + Random.next_int( ).to_string( ) + ".tmp";
+    }
+    else
+    {
+      return OpenDMLib.getpid( ).to_string( ) + "_" + Random.next_int( ).to_string( ) + ".tmp";
+    }
   }
 
   /*
