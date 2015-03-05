@@ -23,6 +23,14 @@ set (VALA_PACKAGES ${VALA_PACKAGES} magick_wand)
 
 set (OPEN_DMLIB_SOURCES ${OPEN_DMLIB_SOURCES} open_dmlib.vala)
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_WINDOWS")
+else()
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_LINUX")
+endif()
+
+set (CUSTOM_VAPIS_LIST binreloc.vapi)
+
 vala_precompile(OPEN_DMLIB_VALA_C
   ${OPEN_DMLIB_SOURCES}
 PACKAGES
@@ -39,7 +47,7 @@ OPTIONS
 
 add_library(
   ${OPEN_DMLIB_NAME} SHARED
-  ${OPEN_DMLIB_VALA_C}
+  ${OPEN_DMLIB_VALA_C} binreloc.c
 )
 
 # CREATE PKGCONFIG FILES

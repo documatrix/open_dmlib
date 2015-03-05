@@ -3,6 +3,14 @@ using Posix;
 namespace OpenDMLib
 {
   /**
+   * This errordomain contains the OpenDMLib errors.
+   */
+  public errordomain OpenDMLibError
+  {
+    OTHER;
+  }
+
+  /**
    * This namespace contains some compare methods.
    */
   namespace Compare
@@ -257,6 +265,64 @@ namespace OpenDMLib
   public bool unichar_equal( unichar? v1, unichar? v2 )
   {
     return *((unichar*)v1) == *((unichar*)v2);
+  }
+
+  /**
+   * This method can be used to find a given executable.
+   * It will return an executable filename (inclusive extension and path).
+   * The method will try to find the given exe file in the path and the exeuctable directory.
+   */
+  public string find_exe( string exe_file )
+  {
+    string? path_exe = Environment.find_program_in_path( exe_file );
+    if ( path_exe != null )
+    {
+      return (!)path_exe;
+    }
+
+    string final_exe = exe_file;
+    #if OS_WINDOWS
+      final_exe += ".exe";
+    #endif
+
+    if ( OpenDMLib.IO.file_exists( OpenDMLib.get_dir( OpenDMLib.get_exe_dir( ) ) + final_exe ) )
+    {
+      return OpenDMLib.get_dir( OpenDMLib.get_exe_dir( ) ) + final_exe;
+    }
+
+    return final_exe;
+  }
+
+  /**
+   * This method will return the directory where the executable is running.
+   * @return The path where the current running executable is located.
+   * @throws OpenDMLibError.OTHER when an error occured while determining the executable dir.
+   */
+  public string get_exe_dir( ) throws OpenDMLibError.OTHER
+  {
+    string? exe_directory = null;
+    BinReloc.InitError init_error = 0;
+    if ( BinReloc.init( ref init_error ) != 1 )
+    {
+      throw new OpenDMLibError.OTHER( "Error initializing the BinReloc library!" );
+    }
+    else
+    {
+      exe_directory = BinReloc.find_exe_dir( null );
+    }
+
+    if ( exe_directory != null && !OpenDMLib.IO.is_directory( exe_directory ) )
+    {
+      /* I did not get the directory - I got the exe file itself... */
+      exe_directory = Path.get_dirname( (!)exe_directory );
+    }
+
+    if ( exe_directory == null )
+    {
+      throw new OpenDMLibError.OTHER( "Could not get the executable directory!" );
+    }
+
+    return (!)exe_directory;
   }
 
   /**
