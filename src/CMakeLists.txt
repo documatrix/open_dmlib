@@ -93,6 +93,7 @@ install(
 FILES
   ${CMAKE_CURRENT_BINARY_DIR}/${OPEN_DMLIB_NAME}.vapi
   ${CMAKE_CURRENT_BINARY_DIR}/magick_wand.vapi
+  ${CMAKE_CURRENT_BINARY_DIR}/windows.vapi
 DESTINATION
   ${CMAKE_INSTALL_PREFIX}/share/vala/vapi/
 )
