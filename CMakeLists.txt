@@ -35,6 +35,14 @@ endif()
 set (MODULES_TO_CHECK glib-2.0 dmtestlib-1.0 gobject-2.0 gio-2.0 gthread-2.0 MagickWand zlib)
 pkg_check_modules(DEPS REQUIRED ${MODULES_TO_CHECK})
 
+message( "definitions: ${DEPS_CFLAGS}" )
+message( "libs: ${DEPS_LIBRARIES}" )
+message( "libdirs: ${DEPS_LIBRARY_DIRS}" )
+
+add_definitions (${DEPS_CFLAGS})
+link_directories ( ${DEPS_LIBRARY_DIRS} )
+link_libraries ( ${DEPS_LIBRARIES} )
+
 set( VAPIDIRS_ARGS "" )
 if( NOT ${VAPIDIRS} STREQUAL "" )
   string( REPLACE ":" ";" VAPIDIRS_LIST ${VAPIDIRS} )
