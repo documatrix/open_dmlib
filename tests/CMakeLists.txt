@@ -9,9 +9,8 @@ configure_file (${CMAKE_SOURCE_DIR}/src/Config.vala.cmake ${CMAKE_BINARY_DIR}/sr
 add_definitions(-DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\")
 add_definitions (${DEPS_CFLAGS})
 include_directories( ${CMAKE_SOURCE_DIR}/src )
-link_libraries ( ${DEPS_LIBRARIES} )
-link_libraries ( ${OPEN_DMLIB_NAME} )
-link_directories ( ${DEPS_LIBRARY_DIRS} )
+link_libraries ( ${DEPS_LIBRARIES} ${OPEN_DMLIB_NAME} )
+link_directories ( ${DEPS_LIBRARY_DIRS} ${CMAKE_SOURCE_DIR}/src )
 find_package (Vala REQUIRED)
 include( UseVala )
 
