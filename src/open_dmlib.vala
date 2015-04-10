@@ -223,6 +223,27 @@ namespace OpenDMLib
   }
 
   /**
+   * This method checks if two given uint64 values are equal.
+   * @param v1 A uint64 value
+   * @param v2 A second uint64 value
+   * @return true of v1 == v2.
+   */
+  public static bool uint64_equal( uint64? v1, uint64? v2 )
+  {
+    return *( (uint64*)v1 ) == *( (uint64*)v2 );
+  }
+
+  /**
+   * This method builds a hash value for a given uint64 value.
+   * @param v A uint64 value to build a hash value for.
+   * @return A hash value for the given uint64 value.
+   */
+  public static uint uint64_hash( uint64? v )
+  {
+    return (uint)( *( (uint64*)v ) % 65521 );
+  }
+
+  /**
    * Checks if the two given int32-values are equal.
    * This method can be used to create a HashTable with int32-keys.
    * @param v1 The first value to check.
