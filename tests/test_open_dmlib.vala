@@ -138,6 +138,8 @@ public class TestDMlib
     );
     ts_open_dmlib.add_suite( ts_color );
 
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_get_trailing_utf8_byte_count", default_setup, test_f_get_trailing_utf8_byte_count, default_teardown ) );
+
     GLib.Test.run( );
     return 0;
   }
@@ -775,5 +777,34 @@ public class TestDMlib
     {
       GLib.assert( false );
     }
+  }
+
+  /**
+   * This test-case tests the get_trailing_utf8_byte_count function.
+   */
+  public static void test_f_get_trailing_utf8_byte_count( )
+  {
+    // 1 Byte Zeichen
+    GLib.assert( get_trailing_utf8_byte_count( 'a' ) == 0 );
+
+    // 2 Byte Zeichen
+    string multi_byte = "ä";
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 0 ) ) == 1 );
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 1 ) ) == 0 );
+
+    // 3 Byte Zeichen
+    multi_byte = "”";
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 0 ) ) == 2 );
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 1 ) ) == 0 );
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 2 ) ) == 0 );
+
+    // 4 Byte Zeichen
+    StringBuilder sb = new StringBuilder( );
+    sb.append_unichar( 0x1F680 );
+    multi_byte = sb.str;
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 0 ) ) == 3 );
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 1 ) ) == 0 );
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 2 ) ) == 0 );
+    GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 3 ) ) == 0 );
   }
 }

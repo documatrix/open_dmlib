@@ -1510,4 +1510,37 @@ namespace OpenDMLib
       return "black";
     }
   }
+
+  /**
+   * Checks if the given byte is the first byte of a UTF-8 multi byte character
+   * and returns the count of trailing bytes.
+   * @param byte The first byte of a UTF-8 character.
+   * @return The count of trailing bytes for this UTF-8 character.
+   */
+  public uint8 get_trailing_utf8_byte_count( uint8 byte )
+  {
+    /* Überprüfen ob das Byte mit 11** **** beginnt */
+    if ( ( byte & 192 ) == 192 )
+    {
+      /* Überprüfen ob das Byte mit 111* **** beginnt */
+      if ( ( byte & 224 ) == 224 )
+      {
+        /* Überprüfen ob das Byte mit 1111 **** beginnt */
+        if ( ( byte & 240 ) == 240 )
+        {
+          return 3;
+        }
+        else
+        {
+          return 2;
+        }
+      }
+      else
+      {
+        return 1;
+      }
+    }
+    /* Byte ist nicht das 1. Byte eines UTF-8 multi Byte Characters */
+    return 0;
+  }
 }
