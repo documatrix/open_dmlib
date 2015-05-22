@@ -27,7 +27,7 @@ vala_precompile(TEST_OPEN_DMLIB_VALA_C
 PACKAGES
   ${VALA_PACKAGES} ${OPEN_DMLIB_NAME}
 OPTIONS
---thread -g --vapidir=${CMAKE_INSTALL_PREFIX}/share/vala/vapi --vapidir=${CMAKE_SOURCE_DIR}/src
+--thread -g --vapidir=${CMAKE_SOURCE_DIR}/src --vapidir=${CMAKE_INSTALL_PREFIX}/share/vala/vapi
 ${CMAKE_VALA_OPTS} ${VAPIDIRS_ARGS}
 CUSTOM_VAPIS
   ${CUSTOM_VAPIS_LIST}
