@@ -138,6 +138,29 @@ public class TestDMlib
     );
     ts_open_dmlib.add_suite( ts_color );
 
+    /*
+     * Stack
+     */
+    GLib.TestSuite ts_stack = new GLib.TestSuite( "Stack" );
+    ts_stack.add(
+      new GLib.TestCase(
+        "test_f_push",
+        default_setup,
+        test_stack_f_push,
+        default_teardown
+      )
+    );
+    ts_stack.add(
+      new GLib.TestCase(
+        "test_f_pop",
+        default_setup,
+        test_stack_f_pop,
+        default_teardown
+      )
+    );
+    ts_open_dmlib.add_suite( ts_stack );
+
+
     ts_open_dmlib.add( new GLib.TestCase( "test_f_get_trailing_utf8_byte_count", default_setup, test_f_get_trailing_utf8_byte_count, default_teardown ) );
 
     GLib.Test.run( );
@@ -806,5 +829,75 @@ public class TestDMlib
     GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 1 ) ) == 0 );
     GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 2 ) ) == 0 );
     GLib.assert( get_trailing_utf8_byte_count( multi_byte.get( 3 ) ) == 0 );
+  }
+
+  /**
+   * A test stack-entry class.
+   */
+  public class TestStackEntry : OpenDMLib.StackEntry
+  {
+    public uint16 data;
+
+    public TestStackEntry( uint16 data )
+    {
+      this.data = data;
+    }
+  }
+
+  /**
+   * This method tests the push method of the Stack class.
+   */
+  public static void test_stack_f_push( )
+  {
+    Stack<TestStackEntry> s = new Stack<TestStackEntry>( );
+    assert( s != null );
+    assert( s.tos == null );
+    
+    s.push( new TestStackEntry( 1 ) );
+    assert( s.tos != null );
+    assert( ( (TestStackEntry)s.tos ).data == 1 );
+
+    s.push( new TestStackEntry( 2 ) );
+    assert( ( (TestStackEntry)s.tos ).data == 2 );
+
+    s.push( new TestStackEntry( 3 ) );
+    assert( ( (TestStackEntry)s.tos ).data == 3 );
+  }
+
+  /**
+   * This method tests the pop method of the Stack class.
+   */
+  public static void test_stack_f_pop( )
+  {
+    Stack<TestStackEntry> s = new Stack<TestStackEntry>( );
+    assert( s != null );
+    assert( s.tos == null );
+    
+    s.push( new TestStackEntry( 1 ) );
+    s.push( new TestStackEntry( 2 ) );
+    s.push( new TestStackEntry( 3 ) );
+    assert( s.tos != null );
+    assert( ( (TestStackEntry)s.tos ).data == 3 );
+
+    TestStackEntry? tse = s.pop( );
+    assert( tse != null );
+    assert( tse.data == 3 );
+    assert( s.tos != null );
+    assert( ( (TestStackEntry)s.tos ).data == 2 );
+
+    tse = s.pop( );
+    assert( tse != null );
+    assert( tse.data == 2 );
+    assert( s.tos != null );
+    assert( ( (TestStackEntry)s.tos ).data == 1 );
+
+    tse = s.pop( );
+    assert( tse != null );
+    assert( tse.data == 1 );
+    assert( s.tos == null );
+
+    tse = s.pop( );
+    assert( tse == null );
+    assert( s.tos == null );
   }
 }

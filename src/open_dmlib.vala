@@ -1543,4 +1543,30 @@ namespace OpenDMLib
     /* Byte ist nicht das 1. Byte eines UTF-8 multi Byte Characters */
     return 0;
   }
+
+  public abstract class StackEntry : GLib.Object
+  {
+    public StackEntry? next_entry = null;
+  }
+
+  public class Stack<G> : GLib.Object
+  {
+    public StackEntry? tos = null;
+
+    public void push( StackEntry se )
+    {
+      se.next_entry = this.tos;
+      this.tos = se;
+    }
+
+    public G? pop( )
+    {
+      StackEntry? se = this.tos;
+      if ( se != null )
+      {
+        this.tos = se.next_entry;
+      }
+      return (G)se;
+    }
+  }
 }
