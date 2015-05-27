@@ -41,7 +41,7 @@ ADD_CUSTOM_TARGET( dblib_preprocessed DEPENDS dblib.vala )
 ADD_CUSTOM_COMMAND(
   SOURCE src/dblib.vala
   OUTPUT src/dblib.vala
-  COMMAND ${PREPROCESS_LOGGER} ${CMAKE_SOURCE_DIR}/src/ ../log/messages.mdb
+  COMMAND ${PREPROCESS_LOGGER} ${CMAKE_SOURCE_DIR}/src/ ../log/messages.mdb dblib
 )
 ADD_DEPENDENCIES( ${DBLIB_NAME} dblib_preprocessed )
 

@@ -238,7 +238,7 @@ public class TestDBLib
   public static void default_setup( )
   {
     DMLogger.log = new DMLogger.Logger( null );
-    DMLogger.log.set_config( true, "../log/messages.mdb" );
+    DMLogger.log.set_config( true, "../log/messages.mdb", false );
     DMLogger.log.start_threaded( );
     Testlib.default_setup( );
   }
