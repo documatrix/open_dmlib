@@ -852,16 +852,20 @@ public class TestDMlib
     Stack<TestStackEntry> s = new Stack<TestStackEntry>( );
     assert( s != null );
     assert( s.tos == null );
-    
+    assert( s.size == 0 );
+
     s.push( new TestStackEntry( 1 ) );
     assert( s.tos != null );
     assert( ( (TestStackEntry)s.tos ).data == 1 );
+    assert( s.size == 1 );
 
     s.push( new TestStackEntry( 2 ) );
     assert( ( (TestStackEntry)s.tos ).data == 2 );
+    assert( s.size == 2 );
 
     s.push( new TestStackEntry( 3 ) );
     assert( ( (TestStackEntry)s.tos ).data == 3 );
+    assert( s.size == 3 );
   }
 
   /**
@@ -872,32 +876,38 @@ public class TestDMlib
     Stack<TestStackEntry> s = new Stack<TestStackEntry>( );
     assert( s != null );
     assert( s.tos == null );
-    
+    assert( s.size == 0 );
+
     s.push( new TestStackEntry( 1 ) );
     s.push( new TestStackEntry( 2 ) );
     s.push( new TestStackEntry( 3 ) );
     assert( s.tos != null );
     assert( ( (TestStackEntry)s.tos ).data == 3 );
+    assert( s.size == 3 );
 
     TestStackEntry? tse = s.pop( );
     assert( tse != null );
     assert( tse.data == 3 );
     assert( s.tos != null );
     assert( ( (TestStackEntry)s.tos ).data == 2 );
+    assert( s.size == 2 );
 
     tse = s.pop( );
     assert( tse != null );
     assert( tse.data == 2 );
     assert( s.tos != null );
     assert( ( (TestStackEntry)s.tos ).data == 1 );
+    assert( s.size == 1 );
 
     tse = s.pop( );
     assert( tse != null );
     assert( tse.data == 1 );
     assert( s.tos == null );
+    assert( s.size == 0 );
 
     tse = s.pop( );
     assert( tse == null );
     assert( s.tos == null );
+    assert( s.size == 0 );
   }
 }

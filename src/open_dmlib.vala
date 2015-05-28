@@ -1552,11 +1552,13 @@ namespace OpenDMLib
   public class Stack<G> : GLib.Object
   {
     public StackEntry? tos = null;
+    public uint16 size = 0;
 
     public void push( StackEntry se )
     {
       se.next_entry = this.tos;
       this.tos = se;
+      this.size ++;
     }
 
     public G? pop( )
@@ -1565,6 +1567,7 @@ namespace OpenDMLib
       if ( se != null )
       {
         this.tos = se.next_entry;
+        this.size --;
       }
       return (G)se;
     }
