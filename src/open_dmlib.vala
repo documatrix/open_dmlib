@@ -556,12 +556,12 @@ namespace OpenDMLib
       uchar[] buffer;
       size_t buffer_index;
 
-      public BufferedFileReader.with_filename( string filename )
+      public BufferedFileReader.with_filename( string filename ) throws OpenDMLib.IO.OpenDMLibIOErrors
       {
         this.filename = filename;
         this.owned_file = OpenDMLib.IO.open( filename, "rb" );
         this.file = this.owned_file;
-        this.buffer = new uchar[BUFFER_SIZE];
+        this.buffer = new uchar[ BUFFER_SIZE ];
         this.buffer_index = BUFFER_SIZE;
       }
 
@@ -684,7 +684,7 @@ namespace OpenDMLib
         this.add_to_buffer( tmp, (size_t)l );
       }
 
-      public BufferedFile.with_filename( string filename )
+      public BufferedFile.with_filename( string filename ) throws OpenDMLib.IO.OpenDMLibIOErrors
       {
         this.filename = filename;
         this.owned_file = OpenDMLib.IO.open( filename, "wb" );
@@ -1567,9 +1567,44 @@ namespace OpenDMLib
       if ( se != null )
       {
         this.tos = se.next_entry;
+        se.next_entry = null;
         this.size --;
       }
       return (G)se;
+    }
+
+    public StackIterator<G> iterator( )
+    {
+      return new StackIterator<G>( this );
+    }
+  }
+
+  public class StackIterator<G> : GLib.Object
+  {
+    public StackEntry? next_entry;
+
+    public StackIterator( Stack s )
+    {
+      this.next_entry = s.tos;
+    }
+
+    public bool next( )
+    {
+      return this.next_entry != null;
+    }
+
+    public G get( )
+    {
+      StackEntry? e = this.next_entry;
+      if ( e != null )
+      {
+        this.next_entry = e.next_entry;
+        return (G)(!)e;
+      }
+      else
+      {
+        return null;
+      }
     }
   }
 }
