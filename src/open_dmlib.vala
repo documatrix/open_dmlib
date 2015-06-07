@@ -568,7 +568,7 @@ namespace OpenDMLib
       public BufferedFileReader.with_filestream( FileStream file )
       {
         this.file = file;
-        this.buffer = new uchar[BUFFER_SIZE];
+        this.buffer = new uchar[ BUFFER_SIZE ];
         this.buffer_index = BUFFER_SIZE;
       }
 
