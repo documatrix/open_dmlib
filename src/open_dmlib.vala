@@ -667,8 +667,18 @@ namespace OpenDMLib
             this.file.write( this.buffer[ 0:this.buffer_index ] );
             this.buffer_index = 0;
           }
-          Memory.copy( &this.buffer[ this.buffer_index ], data, size );
-          this.buffer_index += size;
+          if ( size > BUFFER_SIZE )
+          {
+            /* Data is bigger than one buffer -> write the whole data out... */
+            uint8[] tmp_buf = new uint8[ size ];
+            Memory.copy( &tmp_buf[ 0 ], data, size );
+            this.file.write( tmp_buf );
+          }
+          else
+          {
+            Memory.copy( &this.buffer[ this.buffer_index ], data, size );
+            this.buffer_index += size;
+          }
         }
         catch (Error e)
         {
