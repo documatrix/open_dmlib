@@ -29,6 +29,27 @@ namespace OpenDMLib
     {
       return (int) ( item_1 - item_2 );
     }
+
+    /**
+     * This method checks if two given int16 values are equal.
+     * @param v1 A int16 value.
+     * @param v2 A second int16 value.
+     * @return true if v1 == v2.
+     */
+    public static bool int16_equal( int16? v1, int16? v2 )
+    {
+      return *( (int16*)v1 ) == *( (int16*)v2 );
+    }
+
+    /**
+     * This method builds a hash value for a given int16 value.
+     * @param v A int16 value to build a hash value for.
+     * @return A hash value for the given int16 value.
+     */
+    public static uint int16_hash( int16? v )
+    {
+      return (uint)( *( (int16*)v ) );
+    }
   }
 
   /**
@@ -163,7 +184,7 @@ namespace OpenDMLib
    * This method checks if two given uint16 values are equal.
    * @param v1 A uint16 value
    * @param v2 A second uint16 value
-   * @return true of v1 == v2.
+   * @return true if v1 == v2.
    */
   public static bool uint16_equal( uint16? v1, uint16? v2 )
   {
@@ -176,7 +197,10 @@ namespace OpenDMLib
    * @return A hash value for the given uint16 value.
    */
   public static uint uint16_hash( uint16? v )
-  {
+  {public static uint int16_hash( int16? v )
+    {
+      return (uint)( *( (int16*)v ) );
+    }
     return (uint)( *( (uint16*)v ) );
   }
 
@@ -184,7 +208,7 @@ namespace OpenDMLib
    * This method checks if two given uint8 values are equal.
    * @param v1 A uint8 value
    * @param v2 A second uint8 value
-   * @return true of v1 == v2.
+   * @return true if v1 == v2.
    */
   public static bool uint8_equal( uint8? v1, uint8? v2 )
   {
@@ -205,7 +229,7 @@ namespace OpenDMLib
    * This method checks if two given uint32 values are equal.
    * @param v1 A uint32 value
    * @param v2 A second uint32 value
-   * @return true of v1 == v2.
+   * @return true if v1 == v2.
    */
   public static bool uint32_equal( uint32? v1, uint32? v2 )
   {
@@ -226,7 +250,7 @@ namespace OpenDMLib
    * This method checks if two given uint64 values are equal.
    * @param v1 A uint64 value
    * @param v2 A second uint64 value
-   * @return true of v1 == v2.
+   * @return true if v1 == v2.
    */
   public static bool uint64_equal( uint64? v1, uint64? v2 )
   {
@@ -281,7 +305,7 @@ namespace OpenDMLib
    * This method checks if two given unichar values are equal.
    * @param v1 A unichar value
    * @param v2 A second unichar value
-   * @return true of v1 == v2.
+   * @return true if v1 == v2.
    */
   public bool unichar_equal( unichar? v1, unichar? v2 )
   {

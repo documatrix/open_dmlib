@@ -11,6 +11,13 @@ public class TestDMlib
     GLib.TestSuite.get_root( ).add_suite( ts_open_dmlib );
 
 
+    /* Namespace Compare */
+    GLib.TestSuite ts_compare = new GLib.TestSuite( "Compare" );
+    ts_compare.add( new GLib.TestCase( "test_f_int16_hash", default_setup, test_compare_f_int16_hash, default_teardown ) );
+    ts_compare.add( new GLib.TestCase( "test_f_int16_equal", default_setup, test_compare_f_int16_equal, default_teardown ) );
+    ts_dmlib.add_suite( ts_compare );
+
+
     /* DMArray */
     GLib.TestSuite ts_dmarray = new GLib.TestSuite( "DMArray" );
     ts_dmarray.add( new GLib.TestCase( "test_n", default_setup, test_dmarray_n, default_teardown ) );
@@ -165,6 +172,54 @@ public class TestDMlib
 
     GLib.Test.run( );
     return 0;
+  }
+
+
+  /**
+   * This testcase tests the int16_hash method
+   */
+  public static void test_compare_f_int16_hash( )
+  {
+    int16 u1 = int16.MIN;
+    int16 u2 = int16.MIN;
+    for( ; u1 < int16.MAX; u1++, u2++ )
+    {
+      GLib.assert( Compare.int16_hash( u1 ) == Compare.int16_hash( u2 ) );
+    }
+
+    u1 = int16.MIN;
+    u2 = int16.MIN + 1;
+    for( ; u1 < int16.MAX; u1++, u2++ )
+    {
+      GLib.assert( Compare.int16_hash( u1 ) != Compare.int16_hash( u2 ) );
+    }
+  }
+
+  /**
+   * This testcase tests the int16_equal method
+   */
+  public static void test_compare_f_int16_equal( )
+  {
+    int16 u1 = int16.MIN;
+    int16 u2 = int16.MIN;
+    for( ; u1 < int16.MAX; u1++, u2++ )
+    {
+      GLib.assert( Compare.int16_equal( u1, u2 ) );
+    }
+
+    u1 = int16.MIN;
+    u2 = int16.MIN + 1;
+    for( ; u1 < int16.MAX; u1++, u2++ )
+    {
+      GLib.assert( !Compare.int16_equal( u1, u2 ) );
+    }
+
+    u1 = int16.MIN + 1;
+    u2 = int16.MIN;
+    for( ; u1 < int16.MAX - 1; u1++, u2++ )
+    {
+      GLib.assert( !Compare.int16_equal( u1, u2 ) );
+    }
   }
 
 

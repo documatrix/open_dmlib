@@ -1,4 +1,4 @@
-t_quiet:TRVPARAM=-f
+test_quiet:TRVPARAM=-f
 test_detail:TRVPARAM=-d
 test_qd:TRVPARAM=-f -d
 
