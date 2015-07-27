@@ -15,7 +15,7 @@ public class TestDMlib
     GLib.TestSuite ts_compare = new GLib.TestSuite( "Compare" );
     ts_compare.add( new GLib.TestCase( "test_f_int16_hash", default_setup, test_compare_f_int16_hash, default_teardown ) );
     ts_compare.add( new GLib.TestCase( "test_f_int16_equal", default_setup, test_compare_f_int16_equal, default_teardown ) );
-    ts_dmlib.add_suite( ts_compare );
+    ts_open_dmlib.add_suite( ts_compare );
 
 
     /* DMArray */

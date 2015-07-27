@@ -197,10 +197,7 @@ namespace OpenDMLib
    * @return A hash value for the given uint16 value.
    */
   public static uint uint16_hash( uint16? v )
-  {public static uint int16_hash( int16? v )
-    {
-      return (uint)( *( (int16*)v ) );
-    }
+  {
     return (uint)( *( (uint16*)v ) );
   }
 
