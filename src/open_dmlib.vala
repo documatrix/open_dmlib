@@ -975,7 +975,7 @@ namespace OpenDMLib
       this.write_out_buffer();
     }
 
-    public Ascii85(FileStream os)
+    public Ascii85(DMFileStream os)
     {
       this.os = os;
     }

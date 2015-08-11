@@ -22,6 +22,8 @@ set (VALA_PACKAGES ${VALA_PACKAGES} magick_wand)
 
 set (TEST_OPEN_DMLIB_SOURCES ${TEST_OPEN_DMLIB_SOURCES} test_open_dmlib.vala)
 
+set (CUSTOM_VAPIS_LIST ${CUSTOM_VAPIS_LIST} ../src/open_dmlib_io.vapi)
+
 vala_precompile(TEST_OPEN_DMLIB_VALA_C
   ${TEST_OPEN_DMLIB_SOURCES}
 PACKAGES

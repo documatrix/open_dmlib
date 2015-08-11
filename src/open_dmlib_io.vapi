@@ -53,7 +53,7 @@ int fseeko64( GLib.FileStream stream, uint64 offset, GLib.FileSeek whence );
 #else
 
     [CCode (cname = "fseek")]
-    public int seek (long offset, FileSeek whence);
+    public int seek (long offset, GLib.FileSeek whence);
 
     [CCode (cname = "ftell")]
     public long tell( );
@@ -76,10 +76,10 @@ int fseeko64( GLib.FileStream stream, uint64 offset, GLib.FileSeek whence );
     public string? read_line ()
     {
       int c;
-      StringBuilder? ret = null;
+      GLib.StringBuilder? ret = null;
       while ((c = getc ()) != EOF) {
         if (ret == null) {
-          ret = new StringBuilder ();
+          ret = new GLib.StringBuilder ();
         }
         if (c == '\n') {
           break;
