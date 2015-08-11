@@ -20,13 +20,16 @@ set (VALA_PACKAGES ${VALA_PACKAGES} magick_wand)
 
 set (OPEN_DMLIB_SOURCES ${OPEN_DMLIB_SOURCES} open_dmlib.vala)
 
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_WINDOWS")
 else()
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_LINUX")
 endif()
 
-set (CUSTOM_VAPIS_LIST binreloc.vapi)
+set (CUSTOM_VAPIS_LIST ${CUSTOM_VAPIS_LIST} binreloc.vapi)
+set (CUSTOM_VAPIS_LIST ${CUSTOM_VAPIS_LIST} open_dmlib_io.vapi)
+
 
 vala_precompile(OPEN_DMLIB_VALA_C
   ${OPEN_DMLIB_SOURCES}
@@ -73,7 +76,7 @@ install(
 TARGETS
   ${OPEN_DMLIB_NAME}
 DESTINATION
-bin/ 
+bin/
 )
 else()
 # Install shared object
@@ -99,6 +102,7 @@ FILES
   ${CMAKE_CURRENT_BINARY_DIR}/${OPEN_DMLIB_NAME}.vapi
   ${CMAKE_CURRENT_BINARY_DIR}/magick_wand.vapi
   ${CMAKE_CURRENT_BINARY_DIR}/windows.vapi
+  ${CMAKE_CURRENT_BINARY_DIR}/open_dmlib_io.vapi
 DESTINATION
   ${CMAKE_INSTALL_PREFIX}/share/vala/vapi/
 )
