@@ -556,9 +556,9 @@ namespace OpenDMLib
       return ContentType.get_mime_type( content_type );
     }
 
-    public FileStream open( string filename, string mode ) throws OpenDMLibIOErrors
+    public DMFileStream open( string filename, string mode ) throws OpenDMLibIOErrors
     {
-      FileStream? f = FileStream.open( filename, mode );
+      DMFileStream? f = DMFileStream.open( filename, mode );
       if ( f == null )
       {
         throw new OpenDMLibIOErrors.FILE_ERROR( "ERROR " + GLib.errno.to_string() + ": " + GLib.strerror( GLib.errno ) );
@@ -568,8 +568,8 @@ namespace OpenDMLib
 
     public class BufferedFileReader : GLib.Object
     {
-      private FileStream? owned_file;
-      public unowned FileStream? file;
+      private DMFileStream? owned_file;
+      public unowned DMFileStream? file;
 
       string filename;
 
@@ -586,7 +586,7 @@ namespace OpenDMLib
         this.buffer_index = BUFFER_SIZE;
       }
 
-      public BufferedFileReader.with_filestream( FileStream file )
+      public BufferedFileReader.with_filestream( DMFileStream file )
       {
         this.file = file;
         this.buffer = new uchar[ BUFFER_SIZE ];
@@ -663,8 +663,8 @@ namespace OpenDMLib
     public class BufferedFile : GLib.Object
     {
       private string? filename;
-      private FileStream? owned_file;
-      public unowned FileStream? file;
+      private DMFileStream? owned_file;
+      public unowned DMFileStream? file;
       private uchar[] buffer;
       private size_t buffer_index;
 
@@ -724,7 +724,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public BufferedFile.with_filestream( FileStream file )
+      public BufferedFile.with_filestream( DMFileStream file )
       {
         this.file = file;
         this.buffer = new uchar[BUFFER_SIZE];
@@ -848,7 +848,7 @@ namespace OpenDMLib
     private uint32 pos;
     private uint32 tuple;
     private uint32 count;
-    private unowned FileStream os;
+    private unowned DMFileStream os;
     uint8[] buffer;
     uint32 buffer_index;
     uint16 buffer_size;
