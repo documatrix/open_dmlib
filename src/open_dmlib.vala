@@ -1083,7 +1083,7 @@ namespace OpenDMLib
 
     public void sort( CompareDataFunc<G> compare_func )
     {
-      GLib.qsort_with_data( this.data, sizeof( G ), compare_func );
+      GLib.qsort_with_data<G>( this.data, sizeof( G ), compare_func );
     }
   }
 
