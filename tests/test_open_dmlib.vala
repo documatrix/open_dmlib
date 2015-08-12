@@ -26,21 +26,22 @@ public class TestDMlib
     ts_dmarray.add( new GLib.TestCase( "test_s_data_access", default_setup, test_dmarray_s_data_access, default_teardown ) );
     ts_dmarray.add( new GLib.TestCase( "test_s_foreach", default_setup, test_dm_array_s_foreach, Testlib.default_teardown ) );
     ts_dmarray.add( new GLib.TestCase( "test_f_clear", default_setup, test_dm_array_f_clear, default_teardown ) );
+    ts_dmarray.add( new GLib.TestCase( "test_f_sort", default_setup, test_dm_array_f_sort, default_teardown ) );
     ts_open_dmlib.add_suite( ts_dmarray );
 
     /* Equal Functions */
-    ts_dmarray.add( new GLib.TestCase( "test_f_uint8_equal", default_setup, test_f_uint8_equal, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_uint16_equal", default_setup, test_f_uint16_equal, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_uint32_equal", default_setup, test_f_uint32_equal, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_int32_equal", default_setup, test_f_int32_equal, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_unichar_equal", default_setup, test_f_unichar_equal, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_uint8_equal", default_setup, test_f_uint8_equal, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_uint16_equal", default_setup, test_f_uint16_equal, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_uint32_equal", default_setup, test_f_uint32_equal, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_int32_equal", default_setup, test_f_int32_equal, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_unichar_equal", default_setup, test_f_unichar_equal, default_teardown ) );
 
     /* Hash Functions */
-    ts_dmarray.add( new GLib.TestCase( "test_f_uint8_hash", default_setup, test_f_uint8_hash, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_uint16_hash", default_setup, test_f_uint16_hash, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_uint32_hash", default_setup, test_f_uint32_hash, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_int32_hash", default_setup, test_f_int32_hash, default_teardown ) );
-    ts_dmarray.add( new GLib.TestCase( "test_f_unichar_hash", default_setup, test_f_unichar_hash, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_uint8_hash", default_setup, test_f_uint8_hash, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_uint16_hash", default_setup, test_f_uint16_hash, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_uint32_hash", default_setup, test_f_uint32_hash, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_int32_hash", default_setup, test_f_int32_hash, default_teardown ) );
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_unichar_hash", default_setup, test_f_unichar_hash, default_teardown ) );
 
     GLib.TestSuite ts_color_type = new GLib.TestSuite( "ColorType" );
     ts_color_type.add(
@@ -550,6 +551,31 @@ public class TestDMlib
 
     assert( dm_array.length == 0 );
     assert( dm_array.get_data( ).length == 0 );
+  }
+
+  /**
+   * This test-case tests the sort method of a DMArray.
+   */
+  public static void test_dm_array_f_sort( )
+  {
+    DMArray<string> dm_array = new DMArray<string>( );
+    dm_array.push( "x" );
+    dm_array.push( "a" );
+    dm_array.push( "i" );
+
+    assert( dm_array.length == 3 );
+    assert( dm_array[ 0 ] == "x" );
+    assert( dm_array[ 1 ] == "a" );
+    assert( dm_array[ 2 ] == "i" );
+
+    dm_array.sort( ( a, b ) =>
+    {
+      return strcmp( a, b );
+    } );
+
+    assert( dm_array[ 0 ] == "a" );
+    assert( dm_array[ 1 ] == "i" );
+    assert( dm_array[ 2 ] == "x" );
   }
 
   /**

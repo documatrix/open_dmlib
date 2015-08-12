@@ -1056,12 +1056,12 @@ namespace OpenDMLib
       return last;
     }
 
-    public new void set( int index, G val )
+    public new void set( int index, owned G val )
     {
       this.data[ index ] = val;
     }
 
-    public new G get( int index )
+    public new unowned G get( int index )
     {
       return this.data[ index ];
     }
@@ -1079,6 +1079,11 @@ namespace OpenDMLib
     {
       this.data = { };
       this.length = 0;
+    }
+
+    public void sort( CompareDataFunc<G> compare_func )
+    {
+      GLib.qsort_with_data( this.data, sizeof( G ), compare_func );
     }
   }
 
