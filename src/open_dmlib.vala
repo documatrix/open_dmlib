@@ -129,6 +129,63 @@ namespace OpenDMLib
   }
 
   /**
+   * This method replaces environment variables ( ${...} or %...% ) in the given text.
+   * @param text The environment variables in this string will be replaced.
+   * @param replace_if_exists If true, only environment variables which are currently set, will be replaced.
+   * @return The substituted text.
+   */
+  public string subst_vars( string text, bool replace_if_exists = false )
+  {
+    try
+    {
+      Regex _r1_substVars = /\$\{([^\}]+)\}/;
+      Regex _r2_substVars = /%([^%]+)%/;
+
+      string s_text = "";
+      s_text = _r1_substVars.replace_eval( text, -1, 0, 0, ( match_info, result ) =>
+      {
+        subst_var( match_info, result, replace_if_exists );
+        return false;
+      } );
+
+      s_text = _r2_substVars.replace_eval( s_text, -1, 0, 0, ( match_info, result ) =>
+      {
+        subst_var( match_info, result, replace_if_exists );
+        return false;
+      } );
+
+      return s_text;
+    }
+    catch( RegexError re )
+    {
+      return text;
+    }
+  }
+
+  /**
+   * This method replaces the environment variable name specified in match_info by its content.
+   * @param match_info The MatchInfo object containing the environment variable.
+   * @param result The environment variable content will be appended to this StringBuilder.
+   * @param replace_if_exists If true, only environment variables which are currently set, will be replaced.
+   */
+  private void subst_var( MatchInfo match_info, StringBuilder result, bool replace_if_exists )
+  {
+    string? var_name = match_info.fetch( 1 );
+    if ( var_name != null )
+    {
+      unowned string? var_content = Environment.get_variable( (!)var_name );
+      if ( var_content != null )
+      {
+        result.append( (!)var_content );
+      }
+      else if ( replace_if_exists )
+      {
+        result.append( match_info.fetch( 0 ) );
+      }
+    }
+  }
+
+  /**
    * This method determines the ID of the current running thread.
    * @return The thread id.
    */
