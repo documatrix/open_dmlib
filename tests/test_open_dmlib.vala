@@ -17,6 +17,10 @@ public class TestDMlib
     ts_compare.add( new GLib.TestCase( "test_f_int16_equal", default_setup, test_compare_f_int16_equal, default_teardown ) );
     ts_open_dmlib.add_suite( ts_compare );
 
+    /* Namespace IO */
+    GLib.TestSuite ts_io = new GLib.TestSuite( "IO" );
+    ts_io.add( new GLib.TestCase( "test_f_get_checksum_of_file", Testlib.default_setup, test_io_f_get_checksum_of_file, Testlib.default_teardown ) );
+    ts_open_dmlib.add_suite( ts_io );
 
     /* DMArray */
     GLib.TestSuite ts_dmarray = new GLib.TestSuite( "DMArray" );
@@ -221,6 +225,37 @@ public class TestDMlib
     {
       GLib.assert( !Compare.int16_equal( u1, u2 ) );
     }
+  }
+
+
+  /**
+   * This method tests the get_checksum_of_file method.
+   */
+  public static void test_io_f_get_checksum_of_file( )
+  {
+    /* Fall 1: Kein Checksum Typ angegeben */
+    string expected = "55243ecf175013cfe9890023f9fd9037";
+    string file_name = Testlib.get_temp_file( );
+    Testlib.add_temp_file( file_name );
+
+    GLib.assert( GLib.FileUtils.set_contents( file_name, "Hallo Welt!" ) );
+    string? result = OpenDMLib.IO.get_checksum_of_file( file_name );
+    GLib.assert( result != null );
+    GLib.assert( result == expected );
+
+    /* Fall 2: Checksum Typ SHA1 angegeben */
+    expected = "726c3e8861ab0652a5043ea5faff6d3ef33fb209";
+    file_name = Testlib.get_temp_file( );
+    Testlib.add_temp_file( file_name );
+
+    GLib.assert( GLib.FileUtils.set_contents( file_name, "Hallo Welt!" ) );
+    result = OpenDMLib.IO.get_checksum_of_file( file_name, GLib.ChecksumType.SHA1 );
+    GLib.assert( result != null );
+    GLib.assert( result == expected );
+
+    /* Fall 3: Ungültiges file angegeben, muss null zurückgeben */
+    result = OpenDMLib.IO.get_checksum_of_file( "", GLib.ChecksumType.SHA256 );
+    GLib.assert( result == null );
   }
 
 

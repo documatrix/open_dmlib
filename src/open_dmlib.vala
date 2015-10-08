@@ -443,6 +443,36 @@ namespace OpenDMLib
     }
 
     /**
+     * This method builds the checksum of the given file.
+     *
+     * @param name Name of the file to build the chechsum for.
+     * @param type Type of the checksum to build. Default MD5.
+     *
+     * @return Checksum of the given file.
+     */
+    public string? get_checksum_of_file( string name, GLib.ChecksumType type = GLib.ChecksumType.MD5 )
+    {
+      if ( !GLib.FileUtils.test( name, GLib.FileTest.IS_REGULAR ) )
+      {
+        return null;
+      }
+
+      GLib.Checksum checksum = new GLib.Checksum( type );
+      DMFileStream stream = OpenDMLib.IO.open( name, "rb" );
+      uint8 buffer[ 1024 ];
+      size_t size;
+
+      while ( ( size = stream.read( buffer ) ) > 0 )
+      {
+        checksum.update( buffer, size );
+      }
+
+      stream = null;
+
+      return checksum.get_string( );
+    }
+
+    /**
      * Removes trailing path separators (/ or \) of a value.
      * @param val The value with optional path separator at the end.
      * @return Value without trailing path separators.
