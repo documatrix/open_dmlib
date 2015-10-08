@@ -240,7 +240,6 @@ public class TestDMlib
 
     GLib.assert( GLib.FileUtils.set_contents( file_name, "Hallo Welt!" ) );
     string? result = OpenDMLib.IO.get_checksum_of_file( file_name );
-    stdout.printf( "  == RESULT: %s\n", result );
     GLib.assert( result != null );
     GLib.assert( result == expected );
 
@@ -251,7 +250,6 @@ public class TestDMlib
 
     GLib.assert( GLib.FileUtils.set_contents( file_name, "Hallo Welt!" ) );
     result = OpenDMLib.IO.get_checksum_of_file( file_name, GLib.ChecksumType.SHA1 );
-    stdout.printf( "  == RESULT: %s\n", result );
     GLib.assert( result != null );
     GLib.assert( result == expected );
 
