@@ -128,6 +128,22 @@ namespace OpenDMLib
     return /linux/i.match( OpenDMLib.get_os_type( ) );
   }
 
+
+  /**
+   * This method appends "%" at the beginning and end of the string if OpenDMLib.windows( ) is true
+   * or "$" at the beginning of the string if OpenDMLib.windows( ) is false. e.g.: ( %PATH% or $PATH )
+   * @param text The text
+   * @return "%" + text + "%" or "$" + text
+   */
+  public string add_environment_variable_prefix( string text )
+  {
+    if ( OpenDMLib.windows( ) )
+    {
+      return "%".concat( text, "%" );
+    }
+    return "$".concat( text );
+  }
+
   /**
    * This method replaces environment variables ( ${...} or %...% ) in the given text.
    * @param text The environment variables in this string will be replaced.
