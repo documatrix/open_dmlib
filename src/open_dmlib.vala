@@ -130,18 +130,18 @@ namespace OpenDMLib
 
 
   /**
-   * This method appands "%" at the beginning and end of the string if OpenDMLib.windows( ) is true
+   * This method appends "%" at the beginning and end of the string if OpenDMLib.windows( ) is true
    * or "$" at the beginning of the string if OpenDMLib.windows( ) is false. e.g.: ( %PATH% or $PATH )
-   * @param The text
+   * @param text The text
    * @return "%" + text + "%" or "$" + text
    */
   public string add_environment_variable_prefix( string text )
   {
     if ( OpenDMLib.windows( ) )
     {
-      return "%" + text + "%";
+      return "%".concat( text, "%" );
     }
-    return "$" + text;
+    return "$".concat( text );
   }
 
   /**
