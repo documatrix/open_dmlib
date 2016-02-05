@@ -1,12 +1,12 @@
 /**
  * 64 bit version of ftell method.
  */
-uint64 ftello64( GLib.FileStream stream );
+int64 ftello64( GLib.FileStream stream );
 
 /**
  * 64 bit version of fseek method.
  */
-int fseeko64( GLib.FileStream stream, uint64 offset, GLib.FileSeek whence );
+int fseeko64( GLib.FileStream stream, int64 offset, GLib.FileSeek whence );
 
 
 [Compact]
@@ -42,7 +42,7 @@ int fseeko64( GLib.FileStream stream, uint64 offset, GLib.FileSeek whence );
     [CCode (cname = "fflush")]
     public int flush ();
 
-    public int seek( uint64 offset, GLib.FileSeek whence )
+    public int seek( int64 offset, GLib.FileSeek whence )
     {
 #if OS_WINDOWS
       return this._seek( offset, whence );
@@ -51,22 +51,22 @@ int fseeko64( GLib.FileStream stream, uint64 offset, GLib.FileSeek whence );
 #endif
     }
 
-    public uint64 tell( )
+    public int64 tell( )
     {
 #if OS_WINDOWS
       return this._tell( );
 #else
-      return (uint64)this._tell( );
+      return (int64)this._tell( );
 #endif
     }
 
 #if OS_WINDOWS
 
     [CCode (cname = "fseeko64")]
-    public int _seek( uint64 offset, GLib.FileSeek whence );
+    public int _seek( int64 offset, GLib.FileSeek whence );
 
     [CCode (cname = "ftello64")]
-    public uint64 _tell( );
+    public int64 _tell( );
 
 #else
 
