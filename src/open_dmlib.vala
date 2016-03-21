@@ -451,6 +451,22 @@ namespace OpenDMLib
     public static size_t BUFFER_SIZE = 1024 * 4;
 
     /**
+     * The different Posix.DirEnt.d_type types.
+     */
+    public enum DirType
+    {
+      DT_UNKNOWN = 0,
+      DT_FIFO = 1,
+      DT_CHR = 2,
+      DT_DIR = 4,
+      DT_BLK = 6,
+      DT_REG = 8,
+      DT_LNK = 10,
+      DT_SOCK = 12,
+      DT_WHT = 14;
+    }
+
+    /**
      * Some errors which may occur using methods of OpenDMLib.IO.
      */
     public errordomain OpenDMLibIOErrors {
@@ -863,42 +879,77 @@ namespace OpenDMLib
        * Use this constructor to create a FileSystemObject and load its structure.
        * The constructor will recursively walk down the directory structure and create the needed FileSystemObject's.
        * @param path The path for the FileSystemObject
+       * @param is_dir States if the given path is a directory, a file or unknown.
        */
-      public FileSystemObject( string path ) throws OpenDMLibIOErrors
+      public FileSystemObject( string path, bool? is_dir = null ) throws OpenDMLibIOErrors
       {
-        if ( !OpenDMLib.IO.file_exists( path ) )
-        {
-          throw new OpenDMLibIOErrors.NOT_EXISTS( "Could not create FileSystemObject for path %s! The path does not exist!", path );
-        }
-
         this.path = path;
         this.name = Path.get_basename( path );
 
-        if ( OpenDMLib.IO.is_directory( path ) )
+        if ( ( is_dir == null && OpenDMLib.IO.is_directory( path ) ) || is_dir == true )
         {
           this.directory = true;
+#if OS_WINDOWS
+          string real_dir = OpenDMLib.get_dir( path );
+          string find_dir = real_dir + "*.*";
 
-          GLib.Dir d;
+          Windows.FileApi.FindData data = Windows.FileApi.FindData( );
+          void* handle = Windows.FileApi.FindFirstFileEx( find_dir, Windows.FileApi.FIndex_Info_Levels.Standard, &data, Windows.FileApi.FIndex_Search_Ops.NameMatch, null, 0 );
+          if ( handle == Windows.FileApi.INVALID_HANDLE_VALUE )
+          {
+            throw new OpenDMLibIOErrors.NOT_EXISTS( "Could not create FileSystemObject for path %s! The path does not exist!", path );
+          }
+
           try
           {
-            d = GLib.Dir.open( path );
-
-            unowned string entry;
             FileSystemObject[] children = { };
-            while ( ( entry = d.read_name( ) ) != null )
+            do
             {
-              if ( entry == "." || entry == ".." )
+              string name = (string)data.cFileName;
+              if ( name == "." || name == ".." )
               {
                 continue;
               }
-              children += new FileSystemObject( OpenDMLib.get_dir( this.path ) + entry );
+              name = name.locale_to_utf8( -1, null, null, null );
+              children += new FileSystemObject( real_dir + name, ( data.dwFileAttributes & Windows.FileApi.FileAttribute.DIRECTORY ) != 0 ? true : false );
             }
+            while ( Windows.FileApi.FindNextFile( handle, &data ) );
             this.children = children;
           }
-          catch ( Error e )
+          catch ( OpenDMLibIOErrors e )
           {
             GLib.stderr.printf( "Error while opening directory %s! %s", path, e.message );
           }
+
+          Windows.FileApi.FindClose( handle );
+#else
+          Posix.Dir? dir = Posix.opendir( path );
+          if ( dir == null )
+          {
+            throw new OpenDMLibIOErrors.NOT_EXISTS( "Could not create FileSystemObject for path %s! %s", path, Posix.strerror( Posix.errno ) );
+          }
+          unowned Posix.DirEnt? entry = null;
+          FileSystemObject[] children = { };
+
+          try
+          {
+            while ( ( entry = Posix.readdir( (!)dir ) ) != null )
+            {
+              string name = (string)entry.d_name;
+
+              if ( name == "." || name == ".." )
+              {
+                continue;
+              }
+              children += new FileSystemObject( OpenDMLib.get_dir( this.path ) + name, entry.d_type == DirType.DT_DIR ? true : false );
+            }
+            this.children = children;
+          }
+          catch ( OpenDMLibIOErrors e )
+          {
+            GLib.stderr.printf( "Error while opening directory %s! %s", path, e.message );
+          }
+#endif
         }
       }
     }

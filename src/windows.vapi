@@ -19,10 +19,86 @@ namespace Windows
   }
 
 
-  [CCode (cheader_filename="windows.h,hlink.h")]
-  namespace Hyperlink
+  [CCode (cheader_filename="windows.h,fileapi.h")]
+  namespace FileApi
   {
-    HRESULT HlinkCreateShortcutFromString(DWORD grfHLSHORTCUTF,LPCWSTR pwzTarget,LPCWSTR pwzLocation,LPCWSTR pwzDir,LPCWSTR pwzFileName,LPWSTR *ppwzShortcutFile,DWORD dwReserved);
+    [CCode (cname="INVALID_HANDLE_VALUE")]
+    public static void* INVALID_HANDLE_VALUE;
+
+    [CCode (cname="FINDEX_INFO_LEVELS", cprefix="FindExInfo", has_type_id=false)]
+    public enum FIndex_Info_Levels
+    {
+      Standard,
+      Basic,
+      MaxInfoLevel;
+    }
+
+    [CCode (cname="FINDEX_SEARCH_OPS", cprefix="FindExSearch", has_type_id=false)]
+    public enum FIndex_Search_Ops
+    {
+      NameMatch,
+      LimitToDirectories,
+      LimitToDevices,
+      MaxSearchOp;
+    }
+
+    [CCode (cname="DWORD", cprefix="FIND_FIRST_EX_", has_type_id=false)]
+    public enum FindFlags
+    {
+      CASE_SENSITIVE,
+      LARGE_FETCH;
+    }
+
+    [CCode (cname="DWORD", cprefix="FILE_ATTRIBUTE_", has_type_id=false)]
+    public enum FileAttribute
+    {
+      READONLY,
+      HIDDEN,
+      SYSTEM,
+      DIRECTORY,
+      ARCHIVE,
+      DEVICE,
+      NORMAL,
+      TEMPORARY,
+      SPARSE_FILE,
+      REPARSE_POINT,
+      COMPRESSED,
+      OFFLINE,
+      NOT_CONTENT_INDEXED,
+      ENCRYPTED,
+      VIRTUAL;
+    }
+
+    [CCode (cname="WIN32_FIND_DATA", has_type_id=false)]
+    public struct FindData
+    {
+      FileAttribute dwFileAttributes;
+      FileTime ftCreationTime;
+      FileTime ftLastAccessTime;
+      FileTime ftLastWriteTime;
+      DWORD nFileSizeHigh;
+      DWORD nFileSizeLow;
+      DWORD dwReserved0;
+      DWORD dwReserved1;
+      char* cFileName[MAX_PATH];
+      char* cAlternateFileName[14];
+    }
+
+    [CCode (cname="FILETIME", has_type_id=false)]
+    public struct FileTime
+    {
+      DWORD dwLowDateTime;
+      DWORD dwHighDateTime;
+    }
+
+    [CCode (cname="FindFirstFileEx")]
+    public void* FindFirstFileEx( char* lpFileName, FIndex_Info_Levels fInfoLevelId, FindData* lpFindFileData, FIndex_Search_Ops fSearchOp, void* lpSearchFilter, DWORD dwAdditionalFlags );
+
+    [CCode (cname="FindNextFile")]
+    public bool FindNextFile( void* hFindFile, FindData* lpFindFileData );
+
+    [CCode (cname="FindClose")]
+    public bool FindClose( void* hFindFile );
   }
 
   [CCode (cheader_filename="windows.h,commdlg.h")]
