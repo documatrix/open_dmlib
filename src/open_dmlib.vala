@@ -910,6 +910,7 @@ namespace OpenDMLib
               {
                 continue;
               }
+              name = name.locale_to_utf8( -1, null, null, null );
               children += new FileSystemObject( real_dir + name, ( data.dwFileAttributes & Windows.FileApi.FileAttribute.DIRECTORY ) != 0 ? true : false );
             }
             while ( Windows.FileApi.FindNextFile( handle, &data ) );
