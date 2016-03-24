@@ -80,8 +80,8 @@ namespace Windows
       DWORD nFileSizeLow;
       DWORD dwReserved0;
       DWORD dwReserved1;
-      char* cFileName[MAX_PATH];
-      char* cAlternateFileName[14];
+      char* cFileName;
+      char* cAlternateFileName;
     }
 
     [CCode (cname="FILETIME", has_type_id=false)]
