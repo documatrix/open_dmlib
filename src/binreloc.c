@@ -81,7 +81,10 @@ char * br_find_exe_dir ( const char *default_dir )
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#ifdef OS_LINUX
 #include <linux/limits.h>
+#endif
 
 #ifndef SSIZE_MAX
 #define SSIZE_MAX ((ssize_t)(SIZE_MAX>>1))
