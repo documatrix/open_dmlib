@@ -1,4 +1,5 @@
 using Posix;
+using Windows;
 
 namespace OpenDMLib
 {
@@ -7,6 +8,7 @@ namespace OpenDMLib
    */
   public errordomain OpenDMLibError
   {
+    PROCESS_SPAWN_ERROR,
     OTHER;
   }
 
@@ -895,7 +897,7 @@ namespace OpenDMLib
 
           Windows.FileApi.FindData data = Windows.FileApi.FindData( );
           void* handle = Windows.FileApi.FindFirstFileEx( find_dir, Windows.FileApi.FIndex_Info_Levels.Standard, &data, Windows.FileApi.FIndex_Search_Ops.NameMatch, null, 0 );
-          if ( handle == Windows.FileApi.INVALID_HANDLE_VALUE )
+          if ( handle == Windows.INVALID_HANDLE_VALUE )
           {
             throw new OpenDMLibIOErrors.NOT_EXISTS( "Could not create FileSystemObject for path %s! The path does not exist!", path );
           }
@@ -1797,4 +1799,171 @@ namespace OpenDMLib
       }
     }
   }
+
+#if OS_WINDOWS
+  /**
+   * This class can spawn a new process.
+   */
+  public class ProcessSpawner
+  {
+    /**
+     * The Windows.ThreadsAPI.ProcessInformation that contains the information about the newly created process and its primary thread.
+     */
+    private Windows.ThreadsAPI.ProcessInformation pi = Windows.ThreadsAPI.ProcessInformation( );
+
+    /**
+     * The Windows.ThreadsAPI.StartupInfo that specifies standard handles and appearance of the main window for the process at creation time.
+     */
+    private Windows.ThreadsAPI.StartupInfo si = Windows.ThreadsAPI.StartupInfo( );
+
+    /**
+     * The file (stdout & stderr) handle that is used in the Windows.ThreadsAPI.StartupInfo if an log file is specified.
+     */
+    private void* file_handle;
+
+    /**
+     * This method spawns a process with the given parameters. Call either wait_for_process( ) to wait for the spawned process or close_process_handles( ) to do the cleanup.
+     * See https://msdn.microsoft.com/en-us/library/windows/desktop/ms682425(v=vs.85).aspx for more informations about the CreateProcess method.
+     * See https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx for more informations about the CreateFile method.
+     * @param commandline The command to execute. Win32.locale_filename_from_utf8( ) will be called for you in this method.
+     * @param hide_window Specifies if the method should hide the command prompt.
+     * @param logfile The full path of the logfile you want to use. Use the wait_for_process( ) Method to wait for the process (and the I/O Operations) to finish.
+     *        Win32.locale_filename_from_utf8( ) will be called for you in this method.
+     * @throws An OpenDMLibError.PROCESS_SPAWN_ERROR error with an error message in it.
+     */
+    public void spawn_process( string commandline, bool hide_window = false, string? logfile = null ) throws OpenDMLibError.PROCESS_SPAWN_ERROR
+    {
+      bool executed = false;
+      uint32 create_no_window = 0;
+
+      if ( logfile != null && logfile != "" )
+      {
+        Windows.SecurityAttributes sa = Windows.SecurityAttributes( );
+        sa.lpSecurityDescriptor = null;
+        sa.bInheritHandle = true;
+
+        this.file_handle = FileApi.CreateFile(
+          Win32.locale_filename_from_utf8( logfile ),
+          FileApi.FILE_WRITE_DATA,
+          FileApi.FILE_SHARE_WRITE | FileApi.FILE_SHARE_READ,
+          &sa,
+          FileApi.OPEN_ALWAYS,
+          FileApi.FILE_ATTRIBUTE_NORMAL,
+          null
+        );
+
+        if ( this.file_handle == Windows.INVALID_HANDLE_VALUE )
+        {
+          throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while generating the log file %s! %s!", logfile, OpenDMLib.get_error_message( GetLastError( ) ) );
+        }
+
+        si.dwFlags = Windows.ThreadsAPI.STARTF_USESTDHANDLES;
+        si.hStdError = this.file_handle;
+        si.hStdOutput = this.file_handle;
+      }
+      else
+      {
+        file_handle = Windows.INVALID_HANDLE_VALUE;
+      }
+
+      if ( hide_window )
+      {
+        si.wShowWindow = Windows.ThreadsAPI.SW_HIDE;
+        create_no_window = Windows.ThreadsAPI.CREATE_NO_WINDOW;
+      }
+
+      executed = Windows.ThreadsAPI.CreateProcess( null, Win32.locale_filename_from_utf8( commandline ), null, null, true, create_no_window, null, null, &si, &pi );
+
+      if ( !executed )
+      {
+        throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while spawning a new process with the command %s! %s!", commandline, OpenDMLib.get_error_message( GetLastError( ) ) );
+      }
+    }
+
+    /**
+     * This method waits for the spawned process.
+     * See https://msdn.microsoft.com/en-us/library/windows/desktop/ms687032(v=vs.85).aspx for more informations about the WaitForSingleObject method.
+     * @param The time-out interval, in milliseconds. If you use Windows.ThreadsAPI.INFINITE the function will return only when the process has finished.
+     * @throws An OpenDMLibError.PROCESS_SPAWN_ERROR error with an error message and the return status.
+     */
+    public void wait_for_process( uint32 time_to_wait ) throws OpenDMLibError.PROCESS_SPAWN_ERROR
+    {
+      uint32 rc = Windows.ThreadsAPI.WaitForSingleObject( pi.hProcess, time_to_wait );
+
+      if ( this.file_handle != Windows.INVALID_HANDLE_VALUE && Windows.ThreadsAPI.CloseHandle( this.file_handle ) == false )
+      {
+        throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while closing the file handle! %s!".printf( OpenDMLib.get_error_message( GetLastError( ) ) ) );
+      }
+
+      this.close_process_handles( );
+
+      switch ( rc )
+      {
+        // SUCCESS
+        case Windows.ThreadsAPI.WAIT_OBJECT_0:
+          return;
+
+        case Windows.ThreadsAPI.WAIT_ABANDONED:
+          throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while waiting for the process to finish! WAIT_ABANDONED!" );
+
+        case Windows.ThreadsAPI.WAIT_TIMEOUT:
+          throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while waiting for the process to finish! WAIT_TIMEOUT!" );
+
+        case Windows.ThreadsAPI.WAIT_FAILED:
+          throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while waiting for the process to finish! WAIT_FAILED! %s", OpenDMLib.get_error_message( GetLastError( ) ) );
+
+        default:
+          throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while waiting for the process to finish! Unknown Error!" );
+      }
+    }
+
+    /**
+     * This methods closes the process handles.
+     * See https://msdn.microsoft.com/en-us/library/windows/desktop/ms724211(v=vs.85).aspx for more informations about the CloseHandle method.
+     * @throws An OpenDMLibError.PROCESS_SPAWN_ERROR error with an error message and the return status.
+     */
+    public void close_process_handles( ) throws OpenDMLibError.PROCESS_SPAWN_ERROR
+    {
+      if ( pi.hProcess != Windows.INVALID_HANDLE_VALUE && Windows.ThreadsAPI.CloseHandle( pi.hProcess ) == false )
+      {
+        throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while closing the process handle! %s!".printf( OpenDMLib.get_error_message( GetLastError( ) ) ) );
+      }
+      if ( pi.hThread != Windows.INVALID_HANDLE_VALUE && Windows.ThreadsAPI.CloseHandle( pi.hThread ) == false )
+      {
+        throw new OpenDMLibError.PROCESS_SPAWN_ERROR( "An error occured while closing the process' thread handle! %s!".printf( OpenDMLib.get_error_message( GetLastError( ) ) ) );
+      }
+    }
+  }
+
+  /**
+   * With this method you can obtain an error string for system error codes ( form GetLastError( ) ).
+   * See https://msdn.microsoft.com/en-us/library/windows/desktop/ms679351(v=vs.85).aspx for more informations about the FormatMessage method.
+   * See https://msdn.microsoft.com/en-us/library/windows/desktop/ms679360(v=vs.85).aspx for more informations about the GetLastError method.
+   * See https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx for more informations about the System Error Codes.
+   * @param error_number The error number you received from GetLastError( ).
+   * @return The system error message
+   */
+  public string get_error_message( uint32 error_number )
+  {
+    char * errorText = null;
+
+    uint32 rc = Windows.FormatMessage(
+      Windows.FORMAT_MESSAGE_FROM_SYSTEM        // use system message tables to retrieve error text
+      | Windows.FORMAT_MESSAGE_ALLOCATE_BUFFER  // allocate buffer on local heap for error text
+      | Windows.FORMAT_MESSAGE_IGNORE_INSERTS,  // Important! Will fail otherwise, since we're not (and CANNOT) pass insertion parameters
+      null,                                     // unused with FORMAT_MESSAGE_FROM_SYSTEM
+      error_number,                             // input
+      0,                                        // language, 0 for system language
+      &errorText,                               // output
+      0,                                        // minimum size for output buffer
+      null
+    );
+
+    if ( rc == 0 || errorText == null )
+    {
+      return "Could not generate error message from error number %ld. RC = %ld".printf( error_number, GetLastError( ) );
+    }
+    return (string)errorText;
+  }
+#endif
 }
