@@ -943,7 +943,14 @@ namespace OpenDMLib
               {
                 continue;
               }
-              children += new FileSystemObject( OpenDMLib.get_dir( this.path ) + name, entry.d_type == DirType.DT_DIR ? true : false );
+              if ( entry.d_type != DirType.DT_UNKNOWN )
+              {
+                children += new FileSystemObject( OpenDMLib.get_dir( this.path ) + name, entry.d_type == DirType.DT_DIR ? true : false );
+              }
+              else
+              {
+                children += new FileSystemObject( OpenDMLib.get_dir( this.path ) + name );
+              }
             }
             this.children = children;
           }
