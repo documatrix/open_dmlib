@@ -18,12 +18,55 @@ namespace Windows
   {
   }
 
+  [CCode (cname="SECURITY_ATTRIBUTES")]
+  public struct SecurityAttributes
+  {
+    public uint32 nLength;
+    public void *lpSecurityDescriptor;
+    public bool bInheritHandle;
+  }
 
-  [CCode (cheader_filename="windows.h,fileapi.h")]
+  [CCode (cname="FORMAT_MESSAGE_FROM_SYSTEM")]
+  public static uint32 FORMAT_MESSAGE_FROM_SYSTEM;
+
+  [CCode (cname="FORMAT_MESSAGE_ALLOCATE_BUFFER")]
+  public static uint32 FORMAT_MESSAGE_ALLOCATE_BUFFER;
+
+  [CCode (cname="FORMAT_MESSAGE_IGNORE_INSERTS")]
+  public static uint32 FORMAT_MESSAGE_IGNORE_INSERTS;
+
+  [CCode (cname="INVALID_HANDLE_VALUE")]
+  public static void* INVALID_HANDLE_VALUE;
+
+  [CCode (cname="FormatMessage")]
+  public DWORD FormatMessage( DWORD dwFlags, void* lpSource, DWORD dwMessageId, DWORD dwLanguageId, char ** lpBuffer, DWORD nSize, void* arguments );
+
+  [CCode (cname="GetLastError")]
+  public uint32 GetLastError( );
+
+  [CCode (cheader_filename="windows.h,fileapi.h,winnt.h")]
   namespace FileApi
   {
     [CCode (cname="INVALID_HANDLE_VALUE")]
     public static void* INVALID_HANDLE_VALUE;
+
+    [CCode (cname="FILE_ATTRIBUTE_NORMAL")]
+    public static uint32 FILE_ATTRIBUTE_NORMAL;
+
+    [CCode (cname="OPEN_ALWAYS")]
+    public static uint32 OPEN_ALWAYS;
+
+    [CCode (cname="CREATE_ALWAYS")]
+    public static uint32 CREATE_ALWAYS;
+
+    [CCode (cname="FILE_WRITE_DATA")]
+    public static uint32 FILE_WRITE_DATA;
+
+    [CCode (cname="FILE_SHARE_WRITE")]
+    public static uint32 FILE_SHARE_WRITE;
+
+    [CCode (cname="FILE_SHARE_READ")]
+    public static uint32 FILE_SHARE_READ;
 
     [CCode (cname="FINDEX_INFO_LEVELS", cprefix="FindExInfo", has_type_id=false)]
     public enum FIndex_Info_Levels
@@ -91,6 +134,9 @@ namespace Windows
       DWORD dwHighDateTime;
     }
 
+    [CCode (cname="CreateFile")]
+    public void* CreateFile( char* lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, SecurityAttributes* lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, void* hTemplateFile );
+
     [CCode (cname="FindFirstFileEx")]
     public void* FindFirstFileEx( char* lpFileName, FIndex_Info_Levels fInfoLevelId, FindData* lpFindFileData, FIndex_Search_Ops fSearchOp, void* lpSearchFilter, DWORD dwAdditionalFlags );
 
@@ -99,6 +145,7 @@ namespace Windows
 
     [CCode (cname="FindClose")]
     public bool FindClose( void* hFindFile );
+
   }
 
   [CCode (cheader_filename="windows.h,commdlg.h")]
@@ -207,4 +254,80 @@ namespace Windows
     [CCode (cname="GetSaveFileName")]
     private bool GetSaveFileName( OpenFilename* ofn );
   }
+
+  [CCode (cheader_filename="processthreadsapi.h,errhandlingapi.h,winerror.h,ntdef.h,windef.h,winbase.h,synchapi.h")]
+  namespace ThreadsAPI
+  {
+    [CCode (cname="INFINITE")]
+    public static uint32 INFINITE;
+
+    [CCode (cname="CREATE_NO_WINDOW")]
+    public static uint32 CREATE_NO_WINDOW;
+
+    [CCode (cname="SW_HIDE")]
+    public static uint16 SW_HIDE;
+
+    [CCode (cname="STARTF_USESTDHANDLES")]
+    public static uint32 STARTF_USESTDHANDLES;
+
+    [CCode (cname="WAIT_FAILED")]
+    public static const uint32 WAIT_FAILED;
+
+    [CCode (cname="WAIT_ABANDONED")]
+    public static const uint32 WAIT_ABANDONED;
+
+    [CCode (cname="WAIT_OBJECT_0")]
+    public static const uint32 WAIT_OBJECT_0;
+
+    [CCode (cname="WAIT_TIMEOUT")]
+    public static const uint32 WAIT_TIMEOUT;
+
+    [CCode (cname="CloseHandle")]
+    public bool CloseHandle( void * hObject );
+
+    [CCode (cname="CreateProcess")]
+    public bool CreateProcess( char* lpApplicationName, char* lpCommandLine, SecurityAttributes? lpProcessAttributes, SecurityAttributes? lpThreadAttributes, bool bInheritHandles, DWORD dwCreationFlags, void *lpEnvironment, char* lpCurrentDirectory, StartupInfo* lpStartupInfo, ProcessInformation* lpProcessInformation );
+
+    [CCode (cname="WinExec")]
+    public uint WinExec( string cmdline, uint uCmdShow );
+
+    [CCode (cname="WaitForSingleObject")]
+    public DWORD WaitForSingleObject( void* hProcess, DWORD dwMilliseconds );
+
+    [CCode (cname="GetExitCodeProcess")]
+    public bool GetExitCodeProcess( void* hProcess, DWORD** lpExitCode );
+
+    [CCode (cname="STARTUPINFO")]
+    public struct StartupInfo
+    {
+      public uint32  cb;
+      public char *lpReserved;
+      public char *lpDesktop;
+      public char *lpTitle;
+      public uint32 dwX;
+      public uint32 dwY;
+      public uint32 dwXSize;
+      public uint32 dwYSize;
+      public uint32 dwXCountChars;
+      public uint32 dwYCountChars;
+      public uint32 dwFillAttribute;
+      public uint32 dwFlags;
+      public uint16 wShowWindow;
+      public uint16 cbReserved2;
+      public uint8 lpReserved2;
+      public void *hStdInput;
+      public void *hStdOutput;
+      public void *hStdError;
+    }
+
+    [CCode (cname="PROCESS_INFORMATION")]
+    public struct ProcessInformation
+    {
+      public void *hProcess;
+      public void *hThread;
+      public uint32 dwProcessId;
+      public uint32 dwThreadId;
+    }
+  }
+
 }
