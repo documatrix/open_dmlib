@@ -387,24 +387,33 @@ namespace OpenDMLib
   /**
    * This method can be used to find a given executable.
    * It will return an executable filename (inclusive extension and path).
-   * The method will try to find the given exe file in the path and the exeuctable directory.
+   * The method will try to find the given exe file in the path and the executable directory.
+   * @param exe_file The executable to be searched.
+   * @param prefer_exe_dir States if an executable in the executable directory should be prefered.
+   * @return The executable filename (inclusive extension and path).
    */
-  public string find_exe( string exe_file )
+  public string find_exe( string exe_file, bool prefer_exe_dir = false )
   {
     string? path_exe = Environment.find_program_in_path( exe_file );
-    if ( path_exe != null )
-    {
-      return (!)path_exe;
-    }
 
     string final_exe = exe_file;
     #if OS_WINDOWS
       final_exe += ".exe";
     #endif
 
+    string? exe_dir_exe = null;
     if ( OpenDMLib.IO.file_exists( OpenDMLib.get_dir( OpenDMLib.get_exe_dir( ) ) + final_exe ) )
     {
-      return OpenDMLib.get_dir( OpenDMLib.get_exe_dir( ) ) + final_exe;
+      exe_dir_exe = OpenDMLib.get_dir( OpenDMLib.get_exe_dir( ) ) + final_exe;
+    }
+
+    if ( exe_dir_exe != null && ( prefer_exe_dir || path_exe == null ) )
+    {
+      return exe_dir_exe;
+    }
+    if ( path_exe != null )
+    {
+      return path_exe;
     }
 
     return final_exe;
