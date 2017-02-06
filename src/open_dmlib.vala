@@ -905,7 +905,7 @@ namespace OpenDMLib
           string find_dir = real_dir + "*.*";
 
           Windows.FileApi.FindData data = Windows.FileApi.FindData( );
-          void* handle = Windows.FileApi.FindFirstFileEx( find_dir, Windows.FileApi.FIndex_Info_Levels.Standard, &data, Windows.FileApi.FIndex_Search_Ops.NameMatch, null, 0 );
+          void* handle = Windows.FileApi.FindFirstFileEx( Win32.locale_filename_from_utf8( find_dir ), Windows.FileApi.FIndex_Info_Levels.Standard, &data, Windows.FileApi.FIndex_Search_Ops.NameMatch, null, 0 );
           if ( handle == Windows.INVALID_HANDLE_VALUE )
           {
             throw new OpenDMLibIOErrors.NOT_EXISTS( "Could not create FileSystemObject for path %s! The path does not exist!", path );
