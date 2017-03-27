@@ -146,6 +146,8 @@ namespace Windows
     [CCode (cname="FindClose")]
     public bool FindClose( void* hFindFile );
 
+    [CCode (cname="GetVolumeInformation")]
+    public bool GetVolumeInformation( char* lpRootPathName, char* lpVolumeNameBuffer, DWORD nVolumeNameSize, DWORD* lpVolumeSerialNumber, DWORD* lpMaximumComponentLength, DWORD* lpFileSystemFlags, char* lpFileSystemNameBuffer, DWORD nFileSystemNameSize );
   }
 
   [CCode (cheader_filename="windows.h,commdlg.h")]

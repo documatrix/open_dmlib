@@ -28,6 +28,9 @@ endif()
 find_package(PkgConfig)
 
 set (MODULES_TO_CHECK glib-2.0 dmtestlib-1.0 gobject-2.0 gio-2.0 gthread-2.0 MagickWand zlib)
+if ( NOT ${CMAKE_SYSTEM_NAME} STREQUAL Windows )
+  set (MODULES_TO_CHECK ${MODULES_TO_CHECK} gudev-1.0)
+endif()
 pkg_check_modules(DEPS REQUIRED ${MODULES_TO_CHECK})
 
 set( LIBS )
