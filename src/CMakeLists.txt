@@ -17,6 +17,9 @@ set (VALA_PACKAGES ${VALA_PACKAGES} dmtestlib-1.0)
 set (VALA_PACKAGES ${VALA_PACKAGES} posix)
 set (VALA_PACKAGES ${VALA_PACKAGES} zlib)
 set (VALA_PACKAGES ${VALA_PACKAGES} magick_wand)
+if ( NOT ${CMAKE_SYSTEM_NAME} STREQUAL Windows )
+  set (VALA_PACKAGES ${VALA_PACKAGES} gudev-1.0)
+endif()
 
 set (OPEN_DMLIB_SOURCES ${OPEN_DMLIB_SOURCES} open_dmlib.vala)
 

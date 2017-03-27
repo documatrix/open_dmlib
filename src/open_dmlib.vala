@@ -1219,6 +1219,91 @@ namespace OpenDMLib
     }
   }
 
+  /**
+   * Generates a unique hardware key.
+   * @return A unique hardware key.
+   * @throws OpenDMLibError.OTHER if an error occured while generating the hardware key.
+   */
+  public string get_hardware_key( ) throws OpenDMLibError.OTHER
+  {
+#if OS_WINDOWS
+    string? system_drive = Environment.get_variable( "SystemDrive" );
+    if ( system_drive != null )
+    {
+      system_drive = OpenDMLib.get_dir( (!)system_drive );
+    }
+    else
+    {
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Missing environment variable SystemDrive!" );
+    }
+
+    DWORD volume_serial = 0;
+    bool success = Windows.FileApi.GetVolumeInformation( system_drive, null, 0, &volume_serial, null, null, null, 0 );
+    if ( success )
+    {
+      return "%08X".printf( volume_serial );
+    }
+    else
+    {
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Could not get volume information!" );
+    }
+#else
+    string mounts = "/proc/mounts";
+    DMFileStream mounts_stream;
+    try
+    {
+      mounts_stream = OpenDMLib.IO.open( mounts, "rb" );
+    }
+    catch ( OpenDMLib.IO.OpenDMLibIOErrors e )
+    {
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Could not open file %s for reading! %s", mounts, e.message );
+    }
+
+    Regex reg;
+    try
+    {
+      reg = new Regex( "^(.*)\\s+\\/\\s+" );
+    }
+    catch ( RegexError e )
+    {
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Error while creating regex! %s", e.message );
+    }
+
+    string? root_device = null;
+
+    string? read_line;
+    while ( ( read_line = mounts_stream.read_line( ) ) != null )
+    {
+      MatchInfo match_info;
+      if ( reg.match( read_line, 0, out match_info ) )
+      {
+        root_device = match_info.fetch( 1 );
+        break;
+      }
+    }
+
+    if ( root_device == null )
+    {
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Could not read root device from file %s!", mounts );
+    }
+
+    GUdev.Client c = new GUdev.Client( null );
+    GUdev.Device? d = c.query_by_device_file( (!)root_device );
+    if ( d == null )
+    {
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Could not query information for root device file %s!", (!)root_device );
+    }
+
+    unowned string? uuid = ( (!)d ).get_property( "ID_FS_UUID" );
+    if ( uuid == null )
+    {
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Could not read property ID_FS_UUID for root device file %s!", (!)root_device );
+    }
+
+    return (!)uuid;
+#endif
+  }
+
   /* Einige Funktionen zum Ascii85 codieren */
   public class Ascii85 : GLib.Object
   {
