@@ -1888,7 +1888,7 @@ namespace OpenDMLib
         si.wShowWindow = Windows.ThreadsAPI.SW_HIDE;
         create_no_window = Windows.ThreadsAPI.CREATE_NO_WINDOW;
       }
-      string current_win_directory = null;
+      string? current_win_directory = null;
       if ( current_directory != null )
       {
         current_win_directory = Win32.locale_filename_from_utf8( current_directory );
