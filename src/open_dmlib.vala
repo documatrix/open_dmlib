@@ -1845,9 +1845,10 @@ namespace OpenDMLib
      * @param hide_window Specifies if the method should hide the command prompt.
      * @param logfile The full path of the logfile you want to use. Use the wait_for_process( ) Method to wait for the process (and the I/O Operations) to finish.
      *        Win32.locale_filename_from_utf8( ) will be called for you in this method.
+     * @param current_directory The directory where the command should be executed.
      * @throws An OpenDMLibError.PROCESS_SPAWN_ERROR error with an error message in it.
      */
-    public void spawn_process( string commandline, bool hide_window = false, string? logfile = null ) throws OpenDMLibError.PROCESS_SPAWN_ERROR
+    public void spawn_process( string commandline, bool hide_window = false, string? logfile = null, string? current_directory = null ) throws OpenDMLibError.PROCESS_SPAWN_ERROR
     {
       bool executed = false;
       uint32 create_no_window = 0;
@@ -1887,8 +1888,13 @@ namespace OpenDMLib
         si.wShowWindow = Windows.ThreadsAPI.SW_HIDE;
         create_no_window = Windows.ThreadsAPI.CREATE_NO_WINDOW;
       }
+      string? current_win_directory = null;
+      if ( current_directory != null )
+      {
+        current_win_directory = Win32.locale_filename_from_utf8( current_directory );
+      }
 
-      executed = Windows.ThreadsAPI.CreateProcess( null, Win32.locale_filename_from_utf8( commandline ), null, null, true, create_no_window, null, null, &si, &pi );
+      executed = Windows.ThreadsAPI.CreateProcess( null, Win32.locale_filename_from_utf8( commandline ), null, null, true, create_no_window, current_win_directory, null, &si, &pi );
 
       if ( !executed )
       {
