@@ -1894,7 +1894,7 @@ namespace OpenDMLib
         current_win_directory = Win32.locale_filename_from_utf8( current_directory );
       }
 
-      executed = Windows.ThreadsAPI.CreateProcess( null, Win32.locale_filename_from_utf8( commandline ), null, null, true, create_no_window, current_win_directory, null, &si, &pi );
+      executed = Windows.ThreadsAPI.CreateProcess( null, Win32.locale_filename_from_utf8( commandline ), null, null, true, create_no_window, null, current_win_directory, &si, &pi );
 
       if ( !executed )
       {
