@@ -994,7 +994,6 @@ namespace OpenDMLib
             break;
           }
         }
-        i --;
         _val = _val.replace( "/", "\\" );
         _val = "\\\\" + _val[ i : _val.length ].replace( "\\\\", "\\" );
       }
