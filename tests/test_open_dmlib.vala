@@ -33,6 +33,9 @@ public class TestDMlib
     ts_dmarray.add( new GLib.TestCase( "test_f_sort", default_setup, test_dm_array_f_sort, default_teardown ) );
     ts_open_dmlib.add_suite( ts_dmarray );
 
+    /* getDir */
+    ts_open_dmlib.add( new GLib.TestCase( "test_f_get_dir", default_setup, test_f_get_dir, default_teardown ) );
+
     /* Equal Functions */
     ts_open_dmlib.add( new GLib.TestCase( "test_f_uint8_equal", default_setup, test_f_uint8_equal, default_teardown ) );
     ts_open_dmlib.add( new GLib.TestCase( "test_f_uint16_equal", default_setup, test_f_uint16_equal, default_teardown ) );
@@ -611,6 +614,22 @@ public class TestDMlib
     assert( dm_array[ 0 ] == "a" );
     assert( dm_array[ 1 ] == "i" );
     assert( dm_array[ 2 ] == "x" );
+  }
+
+  /**
+   * This test-case tests the get_dir function
+   */
+  public static void test_f_get_dir( )
+  {
+    /* Linux tests */
+    string test_folder = "/test\\\\test//";
+    GLib.assert( get_dir( test_folder ) == "/test/test/" );
+
+    /* Windows tests*/
+    /* TODO */
+    // Environment.set_variable( "OSTYPE", "windows", false );
+    // Environment.set_variable( "OS", "windows", false );
+    // GLib.assert( get_dir( test_folder ) == "\\test\\test\\" );
   }
 
   /**

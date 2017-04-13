@@ -986,8 +986,17 @@ namespace OpenDMLib
     {
       if ( _val.has_prefix( "\\\\" ) )
       {
-        _val = "\\" + _val[ 1 : _val.length ].replace( "/", "\\" );
-        _val = "\\" + _val[ 1 : _val.length ].replace( "\\\\", "\\" );
+        int i = 2;
+        for ( ; i < _val.length; i ++ )
+        {
+          if ( _val[ i ] != '\\' )
+          {
+            break;
+          }
+        }
+        i --;
+        _val = _val.replace( "/", "\\" );
+        _val = "\\\\" + _val[ i : _val.length ].replace( "\\\\", "\\" );
       }
       else
       {
@@ -997,6 +1006,7 @@ namespace OpenDMLib
     }
     else
     {
+      /* TODO A directory with a backslash in its name will not be handled correct */
       _val = _val.replace( "\\", "/" );
       _val = _val.replace( "//", "/" );
     }
