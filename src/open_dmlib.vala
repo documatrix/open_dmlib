@@ -984,11 +984,28 @@ namespace OpenDMLib
     string _val = val;
     if ( OpenDMLib.windows( ) )
     {
-      _val = _val.replace( "/", "\\" );
-      _val = _val.replace( "\\\\", "\\" );
+      if ( _val.has_prefix( "\\\\" ) )
+      {
+        int i = 2;
+        for ( ; i < _val.length; i ++ )
+        {
+          if ( _val[ i ] != '\\' )
+          {
+            break;
+          }
+        }
+        _val = _val.replace( "/", "\\" );
+        _val = "\\\\" + _val[ i : _val.length ].replace( "\\\\", "\\" );
+      }
+      else
+      {
+        _val = _val.replace( "/", "\\" );
+        _val = _val.replace( "\\\\", "\\" );
+      }
     }
     else
     {
+      /* TODO A directory with a backslash in its name will not be handled correct */
       _val = _val.replace( "\\", "/" );
       _val = _val.replace( "//", "/" );
     }
