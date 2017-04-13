@@ -984,8 +984,16 @@ namespace OpenDMLib
     string _val = val;
     if ( OpenDMLib.windows( ) )
     {
-      _val = _val.replace( "/", "\\" );
-      _val = _val.replace( "\\\\", "\\" );
+      if ( _val.has_prefix( "\\\\" ) )
+      {
+        _val = "\\" + _val[ 1 : _val.length ].replace( "/", "\\" );
+        _val = "\\" + _val[ 1 : _val.length ].replace( "\\\\", "\\" );
+      }
+      else
+      {
+        _val = _val.replace( "/", "\\" );
+        _val = _val.replace( "\\\\", "\\" );
+      }
     }
     else
     {
