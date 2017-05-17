@@ -1464,6 +1464,22 @@ namespace OpenDMLib
     {
       return (int64)this.time.mktime( );
     }
+
+    /**
+     * @see DateTime.to_string
+     */
+    public string to_string( )
+    {
+      return this.time.format( "%FT%H:%M:%S%z" );
+    }
+
+    /**
+     * @see DateTime.format
+     */
+    public string format( string format )
+    {
+      return this.time.format( format );
+    }
   }
 #endif
 
