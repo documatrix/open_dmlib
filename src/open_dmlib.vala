@@ -81,7 +81,7 @@ namespace OpenDMLib
    */
   public int32 get_exit_status( int status )
   {
-    return ( ( (status) & 0xff00 ) >> 8 );
+    return ( ( status & 0xff00 ) >> 8 );
   }
 
   /**
