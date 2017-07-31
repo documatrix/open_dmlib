@@ -482,7 +482,8 @@ namespace OpenDMLib
      */
     public errordomain OpenDMLibIOErrors {
       FILE_ERROR,
-      NOT_EXISTS
+      NOT_EXISTS,
+      END_OF_DATA
     }
 
     /**
@@ -696,98 +697,285 @@ namespace OpenDMLib
       return f;
     }
 
-    public class BufferedFileReader : GLib.Object
+    /**
+     * This class can read a file with a buffer
+     */
+    public class BufferedFileReader : BufferedReader
     {
+      /**
+       * A owned DMFileStream if this class should open the File Stream.
+       */
       private DMFileStream? owned_file;
+
+      /**
+       * A unowned DMFileStream if this class should not open the File Stream.
+       */
       public unowned DMFileStream? file;
 
-      string filename;
+      /**
+       * The path to the File which should be read.
+       */
+      string file_path;
 
-      /* Diese beiden Buffer-Variablen betreffen den Buffer für das Auslesen aus dem File */
-      uchar[] buffer;
-      size_t buffer_index;
-
-      public BufferedFileReader.with_filename( string filename ) throws OpenDMLib.IO.OpenDMLibIOErrors
+      /**
+       * Use this constructor to open a File.
+       * @param file_path The path to the file.
+       * @throws Error if the file could not be read.
+       */
+      public BufferedFileReader.with_filename( string file_path ) throws OpenDMLib.IO.OpenDMLibIOErrors
       {
-        this.filename = filename;
-        this.owned_file = OpenDMLib.IO.open( filename, "rb" );
+        this.file_path = file_path;
+        this.owned_file = OpenDMLib.IO.open( file_path, "rb" );
         this.file = this.owned_file;
         this.buffer = new uchar[ BUFFER_SIZE ];
-        this.buffer_index = BUFFER_SIZE;
       }
 
+      /**
+       * Use this constructor if you already have a DMFileStream opened.
+       * @param file_path The path to the file.
+       * @throws Error if the file could not be read.
+       */
       public BufferedFileReader.with_filestream( DMFileStream file )
       {
         this.file = file;
         this.buffer = new uchar[ BUFFER_SIZE ];
-        this.buffer_index = BUFFER_SIZE;
       }
 
+      /**
+       * This method can be used to close the DMFileStream.
+       */
       public void close( )
       {
         this.file = null;
         this.owned_file = null;
       }
 
-      public string read_string() throws Error
+      /**
+       * @see BufferedReader.next_data
+       */
+      public override size_t next_data( uchar[] data ) throws Error
       {
-        int64 l = 0;
-        this.get_from_buffer(&l, sizeof(int64));
-        char[] tmp = new char[l + 1];
-        this.get_from_buffer(tmp, (size_t)l);
-        tmp[l] = 0;
-        return (string)tmp;
+        return this.file.read( data );
+      }
+    }
+
+    /**
+     * This class can read a file into the memory.
+     */
+    public class MemoryReader : BufferedReader
+    {
+      /**
+       * Use this constructor to read a File into the memory.
+       * @param file_name The path to the file.
+       * @throws Error if the file could not be read.
+       */
+      public MemoryReader.from_file( string file_path ) throws Error
+      {
+        FileUtils.get_data( file_path, out this.buffer );
+        this.buffer_bytes = this.buffer.length;
       }
 
-      public void get_from_buffer(void * data, size_t size)
+      /**
+       * Use this constructor to read from memory.
+       * @param data The array which should be read.
+       */
+      public MemoryReader.from_data( uint8[] data )
       {
-        try
+        this.buffer = data;
+        this.buffer_bytes = this.buffer.length;
+      }
+
+      /**
+       * The MemoryReader has already all data in the memory.
+       * @see BufferedReader.next_data
+       */
+      public override size_t next_data( uchar[] data ) throws OpenDMLibIOErrors
+      {
+        throw new OpenDMLibIOErrors.END_OF_DATA( "Could not read data! End of Array" );
+      }
+    }
+
+    public abstract class BufferedReader : GLib.Object
+    {
+      /**
+       * The size which should be read in one go.
+       */
+      protected size_t buffer_size = BUFFER_SIZE;
+
+      /**
+       * The current buffer with the data.
+       */
+      protected uchar[] buffer;
+
+      /**
+       * The position in the current buffer.
+       */
+      protected size_t buffer_index = 0;
+
+      /**
+       * The number of bytes which were read into the current buffer.
+       */
+      public size_t buffer_bytes = 0;
+
+      /**
+       * This method can be used to copy data from the buffer
+       * If there is not enough data in the buffer it request more data @see next_data
+       * @param data The pointer to data which should be filled
+       * @param size The size which is needed
+       * @throws Error if an error occurs while requesting new data.
+       */
+      public void get_from_buffer( void* data, size_t size ) throws Error
+      {
+        if ( this.buffer_index + size > this.buffer_bytes )
         {
-          size_t delta = 0;
-          uchar[] tmp_buffer = null;
-          if (this.buffer_index + size > BUFFER_SIZE)
-          {
-            tmp_buffer = new uchar[size];
-            /* Das geht sich nicht mehr aus! */
-            /* Muss ich stückeln (kommt vor, wenn sich die Daten noch zum Teil im alten Buffer stehen)? */
-            delta = BUFFER_SIZE - this.buffer_index;
+          int64 first_delta = this.buffer_bytes - this.buffer_index;
 
-            if ( delta > 0 && delta < size )
-            {
-              /* Das Delta ist leider nicht genau die größe => ich muss das Stück aus dem alten Buffer wegsichern ... */
-              Memory.copy(tmp_buffer, &this.buffer[this.buffer_index], delta);
-            }
-
-            /* Die nächsten Daten lesen */
-            this.file.read( this.buffer );
-            if (delta != 0)
-            {
-              /* Stückeln is angesagt => den zweiten Teil aus dem neuen Buffer lesen */
-              Memory.copy(&tmp_buffer[delta], buffer, size - delta);
-              this.buffer_index = size - delta;
-            }
-            else
-            {
-              this.buffer_index = 0;
-            }
-          }
-          if (delta == 0 || delta == size)
+          if ( first_delta > 0 )
           {
-            /* Da war keine Stückelung */
-            Memory.copy(data, &this.buffer[this.buffer_index], size);
-            this.buffer_index += size;
+            Memory.copy( data, &this.buffer[ this.buffer_index ], (size_t)first_delta );
           }
           else
           {
-            /* Ich habe gestückelt */
-            Memory.copy(data, tmp_buffer, size);
+            first_delta = 0;
+          }
+
+          int64 second_delta = size - first_delta;
+          if ( second_delta > this.buffer_size )
+          {
+            size_t read_data = this.next_data( ( (uchar[])data)[ first_delta : size ] );
+
+            if ( read_data > second_delta )
+            {
+              throw new OpenDMLibIOErrors.END_OF_DATA( "Could not read data! End of Data over buffer size" );
+            }
+            this.buffer_bytes = 0;
+            this.buffer_index = 0;
+            return;
+          }
+
+          this.buffer_bytes = this.next_data( this.buffer );
+          if ( second_delta <= this.buffer_bytes )
+          {
+            Memory.copy( &data[ first_delta ], this.buffer, (size_t)second_delta );
+            this.buffer_index = (size_t)second_delta;
+          }
+          else
+          {
+            throw new OpenDMLibIOErrors.END_OF_DATA( "Could not read data! End of Data" );
           }
         }
-        catch (Error e)
+        else
         {
-          GLib.stderr.printf( "Error while reading from buffer! %s\n", e.message );
+          Memory.copy( data, &this.buffer[ this.buffer_index ], size );
+          this.buffer_index += size;
         }
       }
+
+      /**
+       * This method can be used to read a string form the buffer.
+       * @return A new string read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public string read_string( ) throws Error
+      {
+        uint32 length = this.read_uint32( );
+        char[] tmp = new char[ length + 1 ];
+        this.get_from_buffer( tmp, (size_t)length );
+        tmp[ length ] = 0;
+        return (string)tmp;
+      }
+
+      /**
+       * This method can be used to read a uint8 form the buffer.
+       * @return A new uint8 read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public uint8 read_uint8( ) throws Error
+      {
+        uint8 val = 0;
+        this.get_from_buffer( &val, sizeof( uint8 ) );
+        return val;
+      }
+
+      /**
+       * This method can be used to read a uint32 form the buffer.
+       * @return A new uint32 read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public uint32 read_uint32( ) throws Error
+      {
+        uint32 val = 0;
+        this.get_from_buffer( &val, sizeof( uint32 ) );
+        return val;
+      }
+
+      /**
+       * This method can be used to read a int32 form the buffer.
+       * @return A new int32 read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public int32 read_int32( ) throws Error
+      {
+        int32 val = 0;
+        this.get_from_buffer( &val, sizeof( int32 ) );
+        return val;
+      }
+
+      /**
+       * This method can be used to read a uint64 form the buffer.
+       * @return A new uint64 read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public uint64 read_uint64( ) throws Error
+      {
+        uint64 val = 0;
+        this.get_from_buffer( &val, sizeof( uint64 ) );
+        return val;
+      }
+
+      /**
+       * This method can be used to read a int64 form the buffer.
+       * @return A new int64 read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public int64 read_int64( ) throws Error
+      {
+        int64 val = 0;
+        this.get_from_buffer( &val, sizeof( int64 ) );
+        return val;
+      }
+
+      /**
+       * This method can be used to read a double form the buffer.
+       * @return A new double read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public double read_double( ) throws Error
+      {
+        double val = 0;
+        this.get_from_buffer( &val, sizeof( double ) );
+        return val;
+      }
+
+      /**
+       * This method can be used to read a unichar form the buffer.
+       * @return A new unichar read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public unichar read_unichar( ) throws Error
+      {
+        unichar val = 0;
+        this.get_from_buffer( &val, sizeof( unichar ) );
+        return val;
+      }
+
+      /**
+       * This method may be called to get new data for the buffer.
+       * @param data An array where the data should be inserted.
+       * @return The number of bytes which could be read.
+       * @throws Error No data could be read.
+       */
+      public abstract size_t next_data( uchar[] data ) throws Error;
     }
 
     public class BufferedFile : GLib.Object
@@ -839,9 +1027,9 @@ namespace OpenDMLib
 
       public void write_string( string s ) throws Error
       {
-        char[] tmp = s.to_utf8();
-        int64 l = tmp.length;
-        this.add_to_buffer( &l, sizeof(int64) );
+        char[] tmp = s.to_utf8( );
+        uint32 l = tmp.length;
+        this.add_to_buffer( &l, sizeof(uint32) );
         this.add_to_buffer( tmp, (size_t)l );
       }
 
