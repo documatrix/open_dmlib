@@ -818,8 +818,8 @@ namespace OpenDMLib
       public size_t buffer_bytes = 0;
 
       /**
-       * This method can be used to copy get data from the buffer
-       * If there is not enouth data in the buffer it request more data @see next_data
+       * This method can be used to copy data from the buffer
+       * If there is not enough data in the buffer it request more data @see next_data
        * @param data The pointer to data which should be filled
        * @param size The size which is needed
        * @throws Error if an error occurs while requesting new data.
@@ -828,25 +828,20 @@ namespace OpenDMLib
       {
         if ( this.buffer_index + size > this.buffer_bytes )
         {
-          /* Das geht sich nicht mehr aus! */
-          /* Muss ich stückeln (kommt vor, wenn sich die Daten noch zum Teil im alten Buffer stehen)? */
           int64 first_delta = this.buffer_bytes - this.buffer_index;
 
           if ( first_delta > 0 )
           {
-            /* Es gibt noch Daten im alten buffer */
             Memory.copy( data, &this.buffer[ this.buffer_index ], (size_t)first_delta );
           }
           else
           {
-            /* Es gibt keinen negative Größe */
             first_delta = 0;
           }
 
           int64 second_delta = size - first_delta;
           if ( second_delta > this.buffer_size )
           {
-            /* Size ist größer als BUFFER_SIZE */
             size_t read_data = this.next_data( ( (uchar[])data)[ first_delta : size ] );
 
             if ( read_data > second_delta )
@@ -858,11 +853,9 @@ namespace OpenDMLib
             return;
           }
 
-          /* Die nächsten Daten lesen */
           this.buffer_bytes = this.next_data( this.buffer );
           if ( second_delta <= this.buffer_bytes )
           {
-            /* Stückeln is angesagt => den zweiten Teil aus dem neuen Buffer lesen */
             Memory.copy( &data[ first_delta ], this.buffer, (size_t)second_delta );
             this.buffer_index = (size_t)second_delta;
           }
@@ -873,7 +866,6 @@ namespace OpenDMLib
         }
         else
         {
-          /* Es sind noch genügt Daten vorhanden */
           Memory.copy( data, &this.buffer[ this.buffer_index ], size );
           this.buffer_index += size;
         }
@@ -980,7 +972,7 @@ namespace OpenDMLib
       /**
        * This method may be called to get new data for the buffer.
        * @param data An array where the data should be inserted.
-       * @return The data which could be read.
+       * @return The number of bytes which could be read.
        * @throws Error No data could be read.
        */
       public abstract size_t next_data( uchar[] data ) throws Error;
