@@ -828,7 +828,7 @@ namespace OpenDMLib
       {
         if ( this.buffer_index + size > this.buffer_bytes )
         {
-          int64 first_delta = this.buffer_bytes - this.buffer_index;
+          int64 first_delta = (int64)this.buffer_bytes - this.buffer_index;
 
           if ( first_delta > 0 )
           {
@@ -839,7 +839,7 @@ namespace OpenDMLib
             first_delta = 0;
           }
 
-          int64 second_delta = size - first_delta;
+          int64 second_delta = (int64)size - first_delta;
           if ( second_delta > this.buffer_size )
           {
             size_t read_data = this.next_data( ( (uchar[])data)[ first_delta : size ] );
