@@ -992,6 +992,7 @@ namespace OpenDMLib
         if ( this.buffer_index > 0 )
         {
           this.file.write( this.buffer[ 0:this.buffer_index ] );
+          this.file.flush( );
           this.buffer_index = 0;
         }
       }
