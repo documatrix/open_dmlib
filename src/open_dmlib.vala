@@ -1248,6 +1248,8 @@ namespace OpenDMLib
       throw new OpenDMLibError.OTHER( "Error while generating hardware key! Could not get volume information!" );
     }
 #else
+
+  #if LIB_GUDEV
     string mounts = "/proc/mounts";
     DMFileStream mounts_stream;
     try
@@ -1301,6 +1303,9 @@ namespace OpenDMLib
     }
 
     return (!)uuid;
+  #else
+    return "";
+  #endif
 #endif
   }
 
