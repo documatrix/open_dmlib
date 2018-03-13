@@ -1304,7 +1304,7 @@ namespace OpenDMLib
 
     return (!)uuid;
   #else
-    return "";
+    throw new OpenDMLibError.OTHER( "Error while generating hardware key! Library gudev-1.0 not found!" );
   #endif
 #endif
   }
