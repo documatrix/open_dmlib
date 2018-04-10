@@ -266,6 +266,9 @@ namespace Windows
     [CCode (cname="CREATE_NO_WINDOW")]
     public static uint32 CREATE_NO_WINDOW;
 
+    [CCode (cname="CREATE_UNICODE_ENVIRONMENT")]
+    public static uint32 CREATE_UNICODE_ENVIRONMENT;
+
     [CCode (cname="SW_HIDE")]
     public static uint16 SW_HIDE;
 
