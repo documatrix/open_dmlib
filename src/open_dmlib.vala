@@ -180,6 +180,23 @@ namespace OpenDMLib
     }
   }
 
+  public string to_hex_string( uint8[] data )
+  {
+    char[] str = new char[data.length * 2 + 1];
+
+    uint8* pin = data;
+    char* hex = "0123456789ABCDEF";
+    char* pout = str;
+    for( ; pin < (uint8*)data + data.length; pout+=2, pin++ )
+    {
+      pout[ 0 ] = hex[ (*pin>>4) & 0xF ];
+      pout[ 1 ] = hex[  *pin     & 0xF ];
+    }
+    pout[ 0 ] = 0;
+
+    return (string)str;
+  }
+
   /**
    * This method replaces the environment variable name specified in match_info by its content.
    * @param match_info The MatchInfo object containing the environment variable.
@@ -692,7 +709,7 @@ namespace OpenDMLib
       DMFileStream? f = DMFileStream.open( filename, mode );
       if ( f == null )
       {
-        throw new OpenDMLibIOErrors.FILE_ERROR( "ERROR " + GLib.errno.to_string() + ": " + GLib.strerror( GLib.errno ) );
+        throw new OpenDMLibIOErrors.FILE_ERROR( "Error opening %s! ERROR %d: %s", filename, GLib.errno, GLib.strerror( GLib.errno ) );
       }
       return f;
     }
@@ -742,9 +759,9 @@ namespace OpenDMLib
       }
 
       /**
-       * This method can be used to close the DMFileStream.
+       * @see BufferedReader.close
        */
-      public void close( )
+      public override void close( )
       {
         this.file = null;
         this.owned_file = null;
@@ -756,6 +773,31 @@ namespace OpenDMLib
       public override size_t next_data( uchar[] data ) throws Error
       {
         return this.file.read( data );
+      }
+
+      /**
+       * @see BufferedReader.skip
+       */
+      public override void skip( size_t skip_bytes )
+      {
+        if ( this.buffer_index + skip_bytes > this.buffer_bytes )
+        {
+          this.file.seek( skip_bytes - ( this.buffer_bytes - this.buffer_index ), FileSeek.CUR );
+          this.buffer_index = 0;
+          this.buffer_bytes = 0;
+        }
+        else
+        {
+          this.buffer_index += skip_bytes;
+        }
+      }
+
+      /**
+       * @see BufferedReader.get_current_position
+       */
+      public override int64 get_current_position( )
+      {
+        return this.file.tell( ) - ( this.buffer_bytes - this.buffer_index );
       }
     }
 
@@ -786,12 +828,38 @@ namespace OpenDMLib
       }
 
       /**
+       * @see BufferedReader.close
+       */
+      public override void close( )
+      {
+        this.buffer = null;
+        this.buffer_bytes = 0;
+        this.buffer_index = 0;
+      }
+
+      /**
        * The MemoryReader has already all data in the memory.
        * @see BufferedReader.next_data
        */
       public override size_t next_data( uchar[] data ) throws OpenDMLibIOErrors
       {
         throw new OpenDMLibIOErrors.END_OF_DATA( "Could not read data! End of Array" );
+      }
+
+      /**
+       * @see BufferedReader.skip
+       */
+      public override void skip( size_t skip_bytes )
+      {
+        this.buffer_index += skip_bytes;
+      }
+
+      /**
+       * @see BufferedReader.get_current_position
+       */
+      public override int64 get_current_position( )
+      {
+        return this.buffer_index;
       }
     }
 
@@ -970,12 +1038,203 @@ namespace OpenDMLib
       }
 
       /**
+       * Skips the given number of bytes in the filestream/buffer.
+       * @param skip_bytes The number of bytes to be skipped.
+       */
+      public abstract void skip( size_t skip_bytes );
+
+      /**
        * This method may be called to get new data for the buffer.
        * @param data An array where the data should be inserted.
        * @return The number of bytes which could be read.
        * @throws Error No data could be read.
        */
       public abstract size_t next_data( uchar[] data ) throws Error;
+
+      /**
+       * Returns the current position.
+       * @return The current position.
+       */
+      public abstract int64 get_current_position( );
+
+      /**
+       * This method can be called to close the reader.
+       * It may not be used any more after this method was called.
+       */
+      public abstract void close( );
+    }
+
+    public abstract class BufferedWriter : GLib.Object
+    {
+      /**
+       * The size which should be written in one go.
+       */
+      protected size_t buffer_size = BUFFER_SIZE;
+
+      protected uchar[] buffer;
+      public size_t buffer_index;
+
+      public abstract void write( uint8[] buf ) throws Error;
+      public abstract void flush( );
+      public abstract void close( );
+
+      /**
+       * Writes the current buffert data and calls the flush method.
+       */
+      public void write_out_buffer( )
+      {
+        if ( this.buffer_index > 0 )
+        {
+          this.write( this.buffer[ 0 : this.buffer_index ] );
+          this.flush( );
+          this.buffer_index = 0;
+        }
+      }
+
+      public void add_to_buffer(void * data, size_t size) throws Error
+      {
+        try
+        {
+          if ( this.buffer_index + size > this.buffer_size )
+          {
+            /* Data doesn't fit, write current buffer data */
+            this.write( this.buffer[ 0 : this.buffer_index ] );
+          }
+          if ( size > this.buffer_size )
+          {
+            /* Data is bigger than one buffer -> write the whole data out... */
+            uint8[] tmp_buf = new uint8[ size ];
+            Memory.copy( &tmp_buf[ 0 ], data, size );
+            this.write( tmp_buf );
+          }
+          else
+          {
+            Memory.copy( &this.buffer[ this.buffer_index ], data, size );
+            this.buffer_index += size;
+          }
+        }
+        catch ( Error e )
+        {
+          GLib.stderr.printf( "Error writing to buffer: %s\n", e.message );
+        }
+      }
+
+      /**
+       * This method will write the given string into the opened intermediate file.
+       * First it will write the (byte)-length of the string and then the string itself.
+       * If the given string is null, an empty string will be written into the output file.
+       * @param s The string which should be written into the output file or null.
+       * @throws Error if an IO error occurs.
+       */
+      public void write_string( string? s ) throws Error
+      {
+        if ( s == null )
+        {
+          s = "";
+        }
+
+        uint32 l = s.length;
+        this.add_to_buffer( &l, sizeof( uint32 ) );
+        this.add_to_buffer( s.data, l );
+      }
+    }
+
+    public class BufferedFileWriter : BufferedWriter
+    {
+      private string? filename;
+      private DMFileStream? owned_file;
+      public unowned DMFileStream? file;
+
+      public BufferedFileWriter.with_filename( string filename ) throws OpenDMLib.IO.OpenDMLibIOErrors
+      {
+        this.filename = filename;
+        this.owned_file = OpenDMLib.IO.open( filename, "wb" );
+        this.file = this.owned_file;
+        this.buffer = new uchar[ BUFFER_SIZE ];
+        this.buffer_index = 0;
+      }
+
+      public BufferedFileWriter.with_filestream( DMFileStream file )
+      {
+        this.file = file;
+        this.buffer = new uchar[ BUFFER_SIZE ];
+        this.buffer_index = 0;
+      }
+
+      public override void write( uint8[] buf ) throws Error
+      {
+        this.file.write( buf );
+        this.buffer_index = 0;
+      }
+
+      public override void flush( )
+      {
+        this.file.flush( );
+      }
+
+      public override void close( )
+      {
+        this.write_out_buffer( );
+        this.file = null;
+        this.owned_file = null;
+      }
+    }
+
+    public class BufferedMemoryWriter : BufferedWriter
+    {
+      public BufferedMemoryWriter( )
+      {
+        this.buffer = new uchar[ BUFFER_SIZE ];
+        this.buffer_index = 0;
+      }
+
+      public override void write( uint8[] buf ) throws Error
+      {
+        // resize buffer and reset buffer_index
+        this.buffer.resize( buf.length * 2 );
+        this.buffer_size = this.buffer.length;
+      }
+
+      public override void flush( )
+      {
+        // not needed
+      }
+
+      public override void close( )
+      {
+        // not needed
+      }
+    }
+
+    public delegate void WriteBuffer( uint8[] buf ) throws Error;
+
+    public class BufferedLimitedMemoryWriter : BufferedWriter
+    {
+      private WriteBuffer write_buffer;
+
+      public BufferedLimitedMemoryWriter( uint32 buffer_size, WriteBuffer write_buffer )
+      {
+        this.buffer_size = buffer_size;
+        this.buffer = new uchar[ buffer_size ];
+        this.buffer_index = 0;
+        this.write_buffer = write_buffer;
+      }
+
+      public override void write( uint8[] buf ) throws Error
+      {
+        this.write_buffer( buf );
+        this.buffer_index = 0;
+      }
+
+      public override void flush( )
+      {
+        // not needed
+      }
+
+      public override void close( )
+      {
+        // not needed
+      }
     }
 
     public class BufferedFile : GLib.Object
