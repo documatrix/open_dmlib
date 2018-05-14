@@ -33,6 +33,21 @@ namespace OpenDMLib
     }
 
     /**
+      * public static int std_cmp_int32 ( int32? item_1, int32? item_2 )
+      *
+      * Default compare Function for int32 values
+      *
+      * @param item_1 First value that is compared with the second value
+      * @param item_2 Second value that is compared with the first value
+      *
+      * @return -1 if item_1 is lower than item_2, 0 if the items are equal, 1 if item_1 is greater than item_2
+      */
+    public static int std_cmp_int32( int32? item_1, int32? item_2 )
+    {
+      return (int) ( item_1 - item_2 );
+    }
+
+    /**
      * This method checks if two given int16 values are equal.
      * @param v1 A int16 value.
      * @param v2 A second int16 value.
