@@ -981,6 +981,18 @@ namespace OpenDMLib
       }
 
       /**
+       * This method can be used to read a uint16 form the buffer.
+       * @return A new uint16 read from the buffer.
+       * @throws Error if an error occurs while requesting new data. @see get_from_buffer
+       */
+      public uint16 read_uint16( ) throws Error
+      {
+        uint16 val = 0;
+        this.get_from_buffer( &val, sizeof( uint16 ) );
+        return val;
+      }
+
+      /**
        * This method can be used to read a uint32 form the buffer.
        * @return A new uint32 read from the buffer.
        * @throws Error if an error occurs while requesting new data. @see get_from_buffer
