@@ -1249,7 +1249,22 @@ namespace OpenDMLib
 
       public override void write( uint8[] buf ) throws Error
       {
-        this.write_buffer( buf );
+        if ( buf.length > this.buffer_size )
+        {
+          for ( uint64 i = 0; i < buf.length; i += this.buffer_size )
+          {
+            uint64 slice_end = i + this.buffer_size;
+            if ( slice_end > buf.length )
+            {
+              slice_end = buf.length;
+            }
+            this.write_buffer( buf[ i : slice_end ] );
+          }
+        }
+        else
+        {
+          this.write_buffer( buf );
+        }
         this.buffer_index = 0;
       }
 
