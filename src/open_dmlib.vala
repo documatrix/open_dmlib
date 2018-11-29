@@ -1103,12 +1103,12 @@ namespace OpenDMLib
 
       public abstract void write( uint8[] buf ) throws Error;
       public abstract void flush( );
-      public abstract void close( );
+      public abstract void close( ) throws Error;
 
       /**
        * Writes the current buffert data and calls the flush method.
        */
-      public void write_out_buffer( )
+      public void write_out_buffer( ) throws Error
       {
         if ( this.buffer_index > 0 )
         {
@@ -1120,29 +1120,22 @@ namespace OpenDMLib
 
       public void add_to_buffer(void * data, size_t size) throws Error
       {
-        try
+        if ( this.buffer_index + size > this.buffer_size )
         {
-          if ( this.buffer_index + size > this.buffer_size )
-          {
-            /* Data doesn't fit, write current buffer data */
-            this.write( this.buffer[ 0 : this.buffer_index ] );
-          }
-          if ( size > this.buffer_size )
-          {
-            /* Data is bigger than one buffer -> write the whole data out... */
-            uint8[] tmp_buf = new uint8[ size ];
-            Memory.copy( &tmp_buf[ 0 ], data, size );
-            this.write( tmp_buf );
-          }
-          else
-          {
-            Memory.copy( &this.buffer[ this.buffer_index ], data, size );
-            this.buffer_index += size;
-          }
+          /* Data doesn't fit, write current buffer data */
+          this.write( this.buffer[ 0 : this.buffer_index ] );
         }
-        catch ( Error e )
+        if ( size > this.buffer_size )
         {
-          GLib.stderr.printf( "Error writing to buffer: %s\n", e.message );
+          /* Data is bigger than one buffer -> write the whole data out... */
+          uint8[] tmp_buf = new uint8[ size ];
+          Memory.copy( &tmp_buf[ 0 ], data, size );
+          this.write( tmp_buf );
+        }
+        else
+        {
+          Memory.copy( &this.buffer[ this.buffer_index ], data, size );
+          this.buffer_index += size;
         }
       }
 
@@ -1190,7 +1183,11 @@ namespace OpenDMLib
 
       public override void write( uint8[] buf ) throws Error
       {
-        this.file.write( buf );
+        size_t written_bytes = this.file.write( buf );
+        if ( written_bytes != buf.length )
+        {
+          throw new OpenDMLibIOErrors.FILE_ERROR( "Error writing to file %s! %lld of %lld bytes could be written! ERROR: %d", this.filename, written_bytes, buf.length, this.file.error( ) );
+        }
         this.buffer_index = 0;
       }
 
@@ -1199,7 +1196,7 @@ namespace OpenDMLib
         this.file.flush( );
       }
 
-      public override void close( )
+      public override void close( ) throws Error
       {
         this.write_out_buffer( );
         this.file = null;
@@ -1227,7 +1224,7 @@ namespace OpenDMLib
         // not needed
       }
 
-      public override void close( )
+      public override void close( ) throws Error
       {
         // not needed
       }
@@ -1258,7 +1255,7 @@ namespace OpenDMLib
         // not needed
       }
 
-      public override void close( )
+      public override void close( ) throws Error
       {
         // not needed
       }
