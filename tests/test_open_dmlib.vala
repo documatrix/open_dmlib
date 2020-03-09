@@ -22,6 +22,11 @@ public class TestDMlib
     ts_io.add( new GLib.TestCase( "test_f_get_checksum_of_file", Testlib.default_setup, test_io_f_get_checksum_of_file, Testlib.default_teardown ) );
     ts_open_dmlib.add_suite( ts_io );
 
+    /* BufferedNetwork */
+    GLib.TestSuite ts_buffered_network = new GLib.TestSuite( "BufferedNetwork" );
+    ts_buffered_network.add( new GLib.TestCase( "test_s_network_communication", Testlib.default_setup, test_io_s_network_communication, Testlib.default_teardown ) );
+    ts_io.add_suite( ts_buffered_network );
+
     /* DMArray */
     GLib.TestSuite ts_dmarray = new GLib.TestSuite( "DMArray" );
     ts_dmarray.add( new GLib.TestCase( "test_n", default_setup, test_dmarray_n, default_teardown ) );
@@ -262,6 +267,43 @@ public class TestDMlib
     /* Fall 3: Ungültiges file angegeben, muss null zurückgeben */
     result = OpenDMLib.IO.get_checksum_of_file( "", GLib.ChecksumType.SHA256 );
     GLib.assert( result == null );
+  }
+
+  public static void test_io_s_network_communication( )
+  {
+    SocketListener listener = new SocketListener( );
+    uint16 port = listener.add_any_inet_port( null );
+    GLib.assert( port != 0 );
+
+    Thread<void*> thr1 = Thread.create<void*>( ( ) =>
+    {
+      SocketConnection conn = listener.accept( );
+      OpenDMLib.IO.BufferedNetworkWriter writer = new OpenDMLib.IO.BufferedNetworkWriter.with_connection( conn );
+
+      uint64 uint64_test = 0x1234;
+      writer.add_to_buffer( &uint64_test, sizeof( uint64 ) );
+      writer.write_string( "Hello World!" );
+      writer.close( );
+
+      return null;
+    }, true );
+
+    Thread<void*> thr2 = Thread.create<void*>( ( ) =>
+    {
+      OpenDMLib.IO.BufferedNetworkReader reader = new OpenDMLib.IO.BufferedNetworkReader( "localhost", port );
+
+      uint64 uint64_test = 0;
+      reader.get_from_buffer( &uint64_test, sizeof( uint64 ) );
+      assert( uint64_test == 0x1234 );
+
+      string str_test = reader.read_string( );
+      assert( str_test == "Hello World!" );
+
+      return null;
+    }, true );
+
+    thr1.join( );
+    thr2.join( );
   }
 
 

@@ -730,6 +730,96 @@ namespace OpenDMLib
     }
 
     /**
+     * This class can read from network with a buffer
+     */
+    public class BufferedNetworkReader : BufferedReader
+    {
+      /**
+       * The connection which is used for read operations.
+       */
+      private SocketConnection conn;
+
+      /**
+       * This variable contains the number of read bytes.
+       */
+      private size_t bytes_read;
+
+      /**
+       * This constructor will create a new BufferedNetworkReader by connecting to
+       * a specified host and port.
+       * @param host The host to connect to
+       * @param port The port which should be used for connection
+       */
+      public BufferedNetworkReader( string host, uint16 port ) throws Error
+      {
+        SocketClient client = new SocketClient( );
+        this.conn = client.connect_to_host( host, port );
+        this.buffer = new uchar[ BUFFER_SIZE ];
+
+      }
+
+      /**
+       * @see BufferedReader.close
+       */
+      public override void close( ) throws Error
+      {
+        this.conn.close( );
+        this.conn = null;
+      }
+
+      /**
+       * @see BufferedReader.next_data
+       */
+      public override size_t next_data( uchar[] data ) throws Error
+      {
+        ssize_t size = this.conn.input_stream.read( data );
+        /* This can be done, because size is only -1 if an error is thrown. */
+        this.bytes_read += (size_t)size;
+
+        return size;
+      }
+
+      /**
+       * @see BufferedReader.skip
+       */
+      public override void skip( size_t skip_bytes )
+      {
+        if ( this.buffer_index + skip_bytes > this.buffer_bytes )
+        {
+          size_t bytes_to_skip = skip_bytes - ( this.buffer_bytes - this.buffer_index );
+          ssize_t bytes_skipped = this.conn.input_stream.skip( bytes_to_skip );
+          if ( bytes_skipped != bytes_to_skip )
+          {
+            throw new OpenDMLibError.OTHER( "Unable to skip %zu bytes from network stream! Only skipped %zd bytes!", bytes_to_skip, bytes_skipped );
+          }
+          this.buffer_index = 0;
+          this.buffer_bytes = 0;
+        }
+        else
+        {
+          this.buffer_index += skip_bytes;
+        }
+        this.bytes_read += skip_bytes;
+      }
+
+      /**
+       * @see BufferedReader.get_current_position
+       */
+      public override int64 get_current_position( )
+      {
+        return this.bytes_read - ( this.buffer_bytes - this.buffer_index );
+      }
+
+      /**
+       * @see BufferedReader.eof
+       */
+      public override bool eof( )
+      {
+        return this.conn.is_closed( );
+      }
+    }
+
+    /**
      * This class can read a file with a buffer
      */
     public class BufferedFileReader : BufferedReader
@@ -776,7 +866,7 @@ namespace OpenDMLib
       /**
        * @see BufferedReader.close
        */
-      public override void close( )
+      public override void close( ) throws Error
       {
         this.file = null;
         this.owned_file = null;
@@ -793,7 +883,7 @@ namespace OpenDMLib
       /**
        * @see BufferedReader.skip
        */
-      public override void skip( size_t skip_bytes )
+      public override void skip( size_t skip_bytes ) throws Error
       {
         if ( this.buffer_index + skip_bytes > this.buffer_bytes )
         {
@@ -813,6 +903,14 @@ namespace OpenDMLib
       public override int64 get_current_position( )
       {
         return this.file.tell( ) - ( this.buffer_bytes - this.buffer_index );
+      }
+
+      /**
+       * @see BufferedReader.eof
+       */
+      public override bool eof( )
+      {
+        return this.file.eof( );
       }
     }
 
@@ -845,7 +943,7 @@ namespace OpenDMLib
       /**
        * @see BufferedReader.close
        */
-      public override void close( )
+      public override void close( ) throws Error
       {
         this.buffer = null;
         this.buffer_bytes = 0;
@@ -864,7 +962,7 @@ namespace OpenDMLib
       /**
        * @see BufferedReader.skip
        */
-      public override void skip( size_t skip_bytes )
+      public override void skip( size_t skip_bytes ) throws Error
       {
         this.buffer_index += skip_bytes;
       }
@@ -875,6 +973,14 @@ namespace OpenDMLib
       public override int64 get_current_position( )
       {
         return this.buffer_index;
+      }
+
+      /**
+       * @see BufferedReader.eof
+       */
+      public override bool eof( )
+      {
+        return this.buffer_index == this.buffer_bytes;
       }
     }
 
@@ -1068,7 +1174,7 @@ namespace OpenDMLib
        * Skips the given number of bytes in the filestream/buffer.
        * @param skip_bytes The number of bytes to be skipped.
        */
-      public abstract void skip( size_t skip_bytes );
+      public abstract void skip( size_t skip_bytes ) throws Error;
 
       /**
        * This method may be called to get new data for the buffer.
@@ -1085,10 +1191,16 @@ namespace OpenDMLib
       public abstract int64 get_current_position( );
 
       /**
+       * This method checks if the underlying source (file, socket, ...)
+       * is at eof.
+       */
+      public abstract bool eof( );
+
+      /**
        * This method can be called to close the reader.
        * It may not be used any more after this method was called.
        */
-      public abstract void close( );
+      public abstract void close( ) throws Error;
     }
 
     public abstract class BufferedWriter : GLib.Object
@@ -1102,11 +1214,11 @@ namespace OpenDMLib
       public size_t buffer_index;
 
       public abstract void write( uint8[] buf ) throws Error;
-      public abstract void flush( );
+      public abstract void flush( ) throws Error;
       public abstract void close( ) throws Error;
 
       /**
-       * Writes the current buffert data and calls the flush method.
+       * Writes the current buffer data and calls the flush method.
        */
       public void write_out_buffer( ) throws Error
       {
@@ -1191,7 +1303,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void flush( )
+      public override void flush( ) throws Error
       {
         this.file.flush( );
       }
@@ -1201,6 +1313,50 @@ namespace OpenDMLib
         this.write_out_buffer( );
         this.file = null;
         this.owned_file = null;
+      }
+    }
+
+    /**
+     * Instances of the class BufferedNetworkWriter can be used to write data buffered
+     * to a network socket.
+     */
+    public class BufferedNetworkWriter : BufferedWriter
+    {
+      /**
+       * The connection which is used for write operations.
+       */
+      private SocketConnection conn;
+
+      public BufferedNetworkWriter.connect( string host, uint16 port ) throws Error
+      {
+        SocketClient client = new SocketClient( );
+        this.conn = client.connect_to_host( host, port );
+        this.buffer = new uchar[ BUFFER_SIZE ];
+        this.buffer_index = 0;
+      }
+
+      public BufferedNetworkWriter.with_connection( SocketConnection conn )
+      {
+        this.conn = conn;
+        this.buffer = new uchar[ BUFFER_SIZE ];
+        this.buffer_index = 0;
+      }
+
+      public override void write( uint8[] buf ) throws Error
+      {
+        this.conn.output_stream.write( buf );
+        this.buffer_index = 0;
+      }
+
+      public override void flush( ) throws Error
+      {
+        this.conn.output_stream.flush( );
+      }
+
+      public override void close( ) throws Error
+      {
+        this.write_out_buffer( );
+        this.conn.socket.close( );
       }
     }
 
@@ -1219,7 +1375,7 @@ namespace OpenDMLib
         this.buffer_size = this.buffer.length;
       }
 
-      public override void flush( )
+      public override void flush( ) throws Error
       {
         // not needed
       }
@@ -1250,7 +1406,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void flush( )
+      public override void flush( ) throws Error
       {
         // not needed
       }
