@@ -275,7 +275,11 @@ public class TestDMlib
     uint16 port = listener.add_any_inet_port( null );
     GLib.assert( port != 0 );
 
-    Thread<void*> thr1 = Thread.create<void*>( ( ) =>
+#if GLIB_2_32
+    Thread<void*> thr1 = new Thread<void*>( "thr1", ( ) =>
+#else
+    unowned Thread<void*> thr1 = Thread.create<void*>( ( ) =>
+#endif
     {
       SocketConnection conn = listener.accept( );
       OpenDMLib.IO.BufferedNetworkWriter writer = new OpenDMLib.IO.BufferedNetworkWriter.with_connection( conn );
@@ -286,9 +290,17 @@ public class TestDMlib
       writer.close( );
 
       return null;
+#if GLIB_2_32
+    } );
+#else
     }, true );
+#endif
 
-    Thread<void*> thr2 = Thread.create<void*>( ( ) =>
+#if GLIB_2_32
+    Thread<void*> thr2 = new Thread<void*>( "thr2", ( ) =>
+#else
+    unowned Thread<void*> thr2 = Thread.create<void*>( ( ) =>
+#endif
     {
       OpenDMLib.IO.BufferedNetworkReader reader = new OpenDMLib.IO.BufferedNetworkReader( "localhost", port );
 
@@ -300,7 +312,11 @@ public class TestDMlib
       assert( str_test == "Hello World!" );
 
       return null;
+#if GLIB_2_32
+    } );
+#else
     }, true );
+#endif
 
     thr1.join( );
     thr2.join( );
