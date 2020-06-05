@@ -272,8 +272,23 @@ public class TestDMlib
   public static void test_io_s_network_communication( )
   {
     SocketListener listener = new SocketListener( );
-    uint16 port = listener.add_any_inet_port( null );
-    GLib.assert( port != 0 );
+    uint16 port = 1234;
+    while( port <= 2000 )
+    {
+      try
+      {
+        if ( listener.add_inet_port( port, null ) )
+        {
+          break;
+        }
+      }
+      catch ( Error e )
+      {
+        // could not open port
+      }
+      port ++;
+    }
+    GLib.assert( port < 2000 );
 
 #if GLIB_2_32
     Thread<void*> thr1 = new Thread<void*>( "thr1", ( ) =>
