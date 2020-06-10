@@ -772,11 +772,16 @@ namespace OpenDMLib
        */
       public override size_t next_data( uchar[] data ) throws Error
       {
-        ssize_t size = this.conn.input_stream.read( data );
-        /* This can be done, because size is only -1 if an error is thrown. */
-        this.bytes_read += (size_t)size;
+        size_t bytes_read;
+        bool success = this.conn.input_stream.read_all( data, out bytes_read );
+        if ( !success )
+        {
+          GLib.stdout.printf( "Unable to read %ld bytes! Only got %z bytes!\n", data.length, bytes_read );
+          throw new OpenDMLibError.OTHER( "Unable to read %ld bytes! Only got %z bytes!", data.length, bytes_read );
+        }
+        this.bytes_read += bytes_read;
 
-        return size;
+        return bytes_read;
       }
 
       /**
