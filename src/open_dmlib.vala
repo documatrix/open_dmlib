@@ -1235,7 +1235,7 @@ namespace OpenDMLib
         }
       }
 
-      public void add_to_buffer(void * data, size_t size) throws Error
+      public virtual void add_to_buffer(void * data, size_t size) throws Error
       {
         if ( this.buffer_index + size > this.buffer_size )
         {
@@ -1375,9 +1375,7 @@ namespace OpenDMLib
 
       public override void write( uint8[] buf ) throws Error
       {
-        // resize buffer and reset buffer_index
-        this.buffer.resize( buf.length * 2 );
-        this.buffer_size = this.buffer.length;
+        // not needed
       }
 
       public override void flush( ) throws Error
@@ -1388,6 +1386,28 @@ namespace OpenDMLib
       public override void close( ) throws Error
       {
         // not needed
+      }
+
+      public override void add_to_buffer(void * data, size_t size) throws Error
+      {
+        if ( this.buffer_index + size > this.buffer_size )
+        {
+          // Data doesn't fit, extend buffer at minimum with buffer_size * 2
+          size_t newSize = this.buffer_size * 2;
+          if ( this.buffer_index + size > newSize )
+          {
+            newSize = this.buffer_index + size;
+          }
+          this.buffer.resize( (int)newSize );
+          this.buffer_size = newSize;
+        }
+        Memory.copy( &this.buffer[ this.buffer_index ], data, size );
+        this.buffer_index += size;
+      }
+
+      public uint8[] get_data()
+      {
+        return this.buffer[ 0: this.buffer_index ];
       }
     }
 

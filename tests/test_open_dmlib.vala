@@ -27,6 +27,11 @@ public class TestDMlib
     ts_buffered_network.add( new GLib.TestCase( "test_s_network_communication", Testlib.default_setup, test_io_s_network_communication, Testlib.default_teardown ) );
     ts_io.add_suite( ts_buffered_network );
 
+    /* BufferedMemory */
+    GLib.TestSuite ts_buffered_memory = new GLib.TestSuite( "BufferedMemory" );
+    ts_buffered_memory.add( new GLib.TestCase( "test_buffered_memory", default_setup, test_io_buffered_memory, default_teardown ) );
+    ts_open_dmlib.add_suite( ts_buffered_memory );
+
     /* DMArray */
     GLib.TestSuite ts_dmarray = new GLib.TestSuite( "DMArray" );
     ts_dmarray.add( new GLib.TestCase( "test_n", default_setup, test_dmarray_n, default_teardown ) );
@@ -337,6 +342,60 @@ public class TestDMlib
     thr2.join( );
   }
 
+  private class TestBufferedMemoryWriter : OpenDMLib.IO.BufferedMemoryWriter
+  {
+    public TestBufferedMemoryWriter( size_t size )
+    {
+      this.buffer_size = size;
+      this.buffer = new uchar[ size ];
+      this.buffer_index = 0;
+    }
+
+    public size_t get_buffer_size()
+    {
+      assert( this.buffer_size == (size_t)this.buffer.length );
+      return this.buffer_size;
+    }
+  }
+
+  /**
+   * This test-case tests the BufferedMemoryWriter.
+   */
+  public static void test_io_buffered_memory( )
+  {
+    size_t bufferSize = 1;
+    var writer = new TestBufferedMemoryWriter( bufferSize );
+    assert( writer.get_buffer_size() == bufferSize );
+
+    uint8[] data = { 1, 2, 3, 4, 5 };
+    string testString = "Hello, 世界 🚀";
+    uint32 val = 42;
+
+    writer.add_to_buffer( data, sizeof( uint8 ) * data.length );
+    bufferSize = sizeof( uint8 ) * data.length;
+    assert( writer.get_buffer_size() == bufferSize );
+
+    writer.write_string( testString );
+    bufferSize += sizeof(uint32) + testString.length;
+    assert( writer.get_buffer_size() == bufferSize );
+
+    writer.add_to_buffer( &val, sizeof( uint32 ) );
+    bufferSize *= 2;
+    assert( writer.get_buffer_size() == bufferSize );
+
+    var reader = new OpenDMLib.IO.MemoryReader.from_data( writer.get_data() );
+
+    uint8[] data_got = new uint8[ data.length ];
+    reader.get_from_buffer( data_got, sizeof( uint8 ) * data.length );
+    for ( uint32 i = 0; i < data.length; i ++ )
+    {
+      assert( data_got[i] == data[i] );
+    }
+
+    assert( reader.read_string() == testString );
+
+    assert( val == reader.read_uint32() );
+  }
 
   /**
    * This test-case tests the to_uint8 method of the ColorType enum.
