@@ -106,6 +106,9 @@ namespace OpenDMLib
    */
   public string get_os_type( )
   {
+    #if OS_EMSCRIPTEN
+    return "linux";
+    #else
     string v = Environment.get_variable( "OSTYPE" ) ?? "";
     if ( v != "" && /linux/i.match( v ) )
     {
@@ -125,6 +128,7 @@ namespace OpenDMLib
       return "linux";
     }
     return "unknown";
+    #endif
   }
 
   /**
@@ -133,7 +137,11 @@ namespace OpenDMLib
    */
   public bool windows( )
   {
+    #if OS_EMSCRIPTEN
+    return false;
+    #else
     return /mswin/i.match( OpenDMLib.get_os_type( ) );
+    #endif
   }
 
   /**
@@ -142,7 +150,11 @@ namespace OpenDMLib
    */
   public bool linux( )
   {
+    #if OS_EMSCRIPTEN
+    return true;
+    #else
     return /linux/i.match( OpenDMLib.get_os_type( ) );
+    #endif
   }
 
 
