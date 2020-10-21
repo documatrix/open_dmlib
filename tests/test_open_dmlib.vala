@@ -351,7 +351,7 @@ public class TestDMlib
       this.buffer_index = 0;
     }
 
-    public size_t get_buffer_size()
+    public size_t get_buffer_size( )
     {
       assert( this.buffer_size == (size_t)this.buffer.length );
       return this.buffer_size;
