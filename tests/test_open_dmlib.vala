@@ -389,7 +389,7 @@ public class TestDMlib
     reader.get_from_buffer( data_got, sizeof( uint8 ) * data.length );
     for ( uint32 i = 0; i < data.length; i ++ )
     {
-      assert( data_got[i] == data[i] );
+      assert( data_got[ i ] == data[ i ] );
     }
 
     assert( reader.read_string() == testString );
