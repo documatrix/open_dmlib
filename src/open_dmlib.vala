@@ -1405,13 +1405,13 @@ namespace OpenDMLib
         if ( this.buffer_index + size > this.buffer_size )
         {
           // Data doesn't fit, extend buffer at minimum with buffer_size * 2
-          size_t newSize = this.buffer_size * 2;
-          if ( this.buffer_index + size > newSize )
+          size_t new_size = this.buffer_size * 2;
+          if ( this.buffer_index + size > new_size )
           {
-            newSize = this.buffer_index + size;
+            new_size = this.buffer_index + size;
           }
-          this.buffer.resize( (int)newSize );
-          this.buffer_size = newSize;
+          this.buffer.resize( (int) new_size );
+          this.buffer_size = new_size;
         }
         Memory.copy( &this.buffer[ this.buffer_index ], data, size );
         this.buffer_index += size;
