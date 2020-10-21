@@ -1400,7 +1400,7 @@ namespace OpenDMLib
         // not needed
       }
 
-      public override void add_to_buffer(void * data, size_t size) throws Error
+      public override void add_to_buffer( void * data, size_t size ) throws Error
       {
         if ( this.buffer_index + size > this.buffer_size )
         {
