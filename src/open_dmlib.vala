@@ -1419,7 +1419,7 @@ namespace OpenDMLib
 
       public uint8[] get_data()
       {
-        return this.buffer[ 0: this.buffer_index ];
+        return this.buffer[ 0 : this.buffer_index ];
       }
     }
 
