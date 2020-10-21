@@ -363,9 +363,9 @@ public class TestDMlib
    */
   public static void test_io_buffered_memory( )
   {
-    size_t bufferSize = 1;
-    var writer = new TestBufferedMemoryWriter( bufferSize );
-    assert( writer.get_buffer_size() == bufferSize );
+    size_t buffer_size = 1;
+    var writer = new TestBufferedMemoryWriter( buffer_size );
+    assert( writer.get_buffer_size() == buffer_size );
 
     uint8[] data = { 1, 2, 3, 4, 5 };
     string testString = "Hello, 世界 🚀";
