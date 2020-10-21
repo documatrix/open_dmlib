@@ -98,15 +98,15 @@ DESTINATION
 bin/
 )
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL Emscripten)
-# Install shared object
-install(
-TARGETS
-  ${OPEN_DMLIB_NAME}
-LIBRARY DESTINATION
-lib/
-ARCHIVE DESTINATION
-lib/
-)
+  # Install shared object
+  install(
+  TARGETS
+    ${OPEN_DMLIB_NAME}
+  LIBRARY DESTINATION
+    lib/
+  ARCHIVE DESTINATION
+    lib/
+  )
 else()
 # Install shared object
 install(
