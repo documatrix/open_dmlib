@@ -392,7 +392,7 @@ public class TestDMlib
       assert( data_got[ i ] == data[ i ] );
     }
 
-    assert( reader.read_string() == testString );
+    assert( reader.read_string( ) == test_string );
 
     assert( val == reader.read_uint32() );
   }
