@@ -380,7 +380,7 @@ public class TestDMlib
     assert( writer.get_buffer_size() == buffer_size );
 
     writer.add_to_buffer( &val, sizeof( uint32 ) );
-    bufferSize *= 2;
+    buffer_size *= 2;
     assert( writer.get_buffer_size() == buffer_size );
 
     var reader = new OpenDMLib.IO.MemoryReader.from_data( writer.get_data( ) );
