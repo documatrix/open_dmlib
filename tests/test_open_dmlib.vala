@@ -368,7 +368,7 @@ public class TestDMlib
     assert( writer.get_buffer_size() == buffer_size );
 
     uint8[] data = { 1, 2, 3, 4, 5 };
-    string testString = "Hello, 世界 🚀";
+    string test_string = "Hello, 世界 🚀";
     uint32 val = 42;
 
     writer.add_to_buffer( data, sizeof( uint8 ) * data.length );
