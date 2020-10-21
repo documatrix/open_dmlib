@@ -394,7 +394,7 @@ public class TestDMlib
 
     assert( reader.read_string( ) == test_string );
 
-    assert( val == reader.read_uint32() );
+    assert( val == reader.read_uint32( ) );
   }
 
   /**
