@@ -375,9 +375,9 @@ public class TestDMlib
     buffer_size = sizeof( uint8 ) * data.length;
     assert( writer.get_buffer_size() == buffer_size );
 
-    writer.write_string( testString );
-    bufferSize += sizeof(uint32) + testString.length;
-    assert( writer.get_buffer_size() == bufferSize );
+    writer.write_string( test_string );
+    buffer_size += sizeof(uint32) + test_string.length;
+    assert( writer.get_buffer_size() == buffer_size );
 
     writer.add_to_buffer( &val, sizeof( uint32 ) );
     bufferSize *= 2;
