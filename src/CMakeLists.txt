@@ -32,6 +32,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_MACOSX")
   set (CMAKE_VALA_OPTS ${CMAKE_VALA_OPTS} -D OS_MACOSX)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL Emscripten)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_EMSCRIPTEN")
+  set (CMAKE_VALA_OPTS ${CMAKE_VALA_OPTS} -D OS_EMSCRIPTEN)
 else()
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOS_LINUX")
   set (CMAKE_VALA_OPTS ${CMAKE_VALA_OPTS} -D OS_LINUX)
@@ -94,6 +97,16 @@ TARGETS
 DESTINATION
 bin/
 )
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL Emscripten)
+  # Install shared object
+  install(
+  TARGETS
+    ${OPEN_DMLIB_NAME}
+  LIBRARY DESTINATION
+    lib/
+  ARCHIVE DESTINATION
+    lib/
+  )
 else()
 # Install shared object
 install(
