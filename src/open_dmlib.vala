@@ -1230,7 +1230,7 @@ namespace OpenDMLib
       protected uchar[] buffer;
       public size_t buffer_index;
 
-      public abstract void write( uint8[] buf ) throws Error;
+      protected abstract void write( uint8[] buf ) throws Error;
       public abstract void flush( ) throws Error;
       public abstract void close( ) throws Error;
 
@@ -1321,7 +1321,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         size_t written_bytes = this.file.write( buf );
         if ( written_bytes != buf.length )
@@ -1370,7 +1370,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         this.conn.output_stream.write( buf );
         this.buffer_index = 0;
@@ -1396,7 +1396,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         // not needed
       }
@@ -1448,7 +1448,7 @@ namespace OpenDMLib
         this.write_buffer = write_buffer;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         this.write_buffer( buf );
         this.buffer_index = 0;
