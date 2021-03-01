@@ -1269,6 +1269,17 @@ namespace OpenDMLib
       }
 
       /**
+       * This method is a convenience method to write a byte array to the buffer.
+       * It just calls add_to_buffer with the correct length.
+       * @param data The data which should be written
+       * @throws Error if an IO error occurs.
+       */
+      public void add_data_to_buffer( uint8[] data ) throws Error
+      {
+        this.add_to_buffer( data, data.length );
+      }
+
+      /**
        * This method will write the given string into the opened intermediate file.
        * First it will write the (byte)-length of the string and then the string itself.
        * If the given string is null, an empty string will be written into the output file.
@@ -1417,7 +1428,7 @@ namespace OpenDMLib
         this.buffer_index += size;
       }
 
-      public uint8[] get_data()
+      public unowned uint8[] get_data()
       {
         return this.buffer[ 0 : this.buffer_index ];
       }
