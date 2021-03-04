@@ -1230,7 +1230,7 @@ namespace OpenDMLib
       protected uchar[] buffer;
       public size_t buffer_index;
 
-      public abstract void write( uint8[] buf ) throws Error;
+      protected abstract void write( uint8[] buf ) throws Error;
       public abstract void flush( ) throws Error;
       public abstract void close( ) throws Error;
 
@@ -1266,6 +1266,17 @@ namespace OpenDMLib
           Memory.copy( &this.buffer[ this.buffer_index ], data, size );
           this.buffer_index += size;
         }
+      }
+
+      /**
+       * This method is a convenience method to write a byte array to the buffer.
+       * It just calls add_to_buffer with the correct length.
+       * @param data The data which should be written
+       * @throws Error if an IO error occurs.
+       */
+      public void add_data_to_buffer( uint8[] data ) throws Error
+      {
+        this.add_to_buffer( data, data.length );
       }
 
       /**
@@ -1310,7 +1321,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         size_t written_bytes = this.file.write( buf );
         if ( written_bytes != buf.length )
@@ -1359,7 +1370,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         this.conn.output_stream.write( buf );
         this.buffer_index = 0;
@@ -1385,7 +1396,7 @@ namespace OpenDMLib
         this.buffer_index = 0;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         // not needed
       }
@@ -1417,7 +1428,7 @@ namespace OpenDMLib
         this.buffer_index += size;
       }
 
-      public uint8[] get_data()
+      public unowned uint8[] get_data()
       {
         return this.buffer[ 0 : this.buffer_index ];
       }
@@ -1437,7 +1448,7 @@ namespace OpenDMLib
         this.write_buffer = write_buffer;
       }
 
-      public override void write( uint8[] buf ) throws Error
+      protected override void write( uint8[] buf ) throws Error
       {
         this.write_buffer( buf );
         this.buffer_index = 0;
