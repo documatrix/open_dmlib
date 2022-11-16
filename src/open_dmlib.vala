@@ -183,8 +183,8 @@ namespace OpenDMLib
   {
     try
     {
-      Regex _r1_substVars = /\$\{([^\}]+)\}/;
-      Regex _r2_substVars = /%([^%]+)%/;
+      GLib.Regex _r1_substVars = /\$\{([^\}]+)\}/;
+      GLib.Regex _r2_substVars = /%([^%]+)%/;
 
       string s_text = "";
       s_text = _r1_substVars.replace_eval( text, -1, 0, 0, ( match_info, result ) =>
@@ -201,7 +201,7 @@ namespace OpenDMLib
 
       return s_text;
     }
-    catch( RegexError re )
+    catch( GLib.RegexError re )
     {
       return text;
     }
@@ -1748,14 +1748,14 @@ namespace OpenDMLib
       throw new OpenDMLibError.OTHER( "Error while generating hardware key! Could not open file %s for reading! %s", mounts, e.message );
     }
 
-    Regex reg;
+    GLib.Regex reg;
     try
     {
-      reg = new Regex( "^(.*)\\s+\\/\\s+" );
+      reg = new GLib.Regex( "^(.*)\\s+\\/\\s+" );
     }
-    catch ( RegexError e )
+    catch ( GLib.RegexError e )
     {
-      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Error while creating regex! %s", e.message );
+      throw new OpenDMLibError.OTHER( "Error while generating hardware key! Error while creating GLib.Regex! %s", e.message );
     }
 
     string? root_device = null;
