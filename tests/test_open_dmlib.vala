@@ -307,6 +307,13 @@ public class TestDMlib
       uint64 uint64_test = 0x1234;
       writer.add_to_buffer( &uint64_test, sizeof( uint64 ) );
       writer.write_string( "Hello World!" );
+
+      uint8[] payload = new uint8[ 16 * 1024 * 1024 ];
+      for ( int i = 0; i < payload.length; i ++ )
+      {
+        payload[ i ] = (uint8)( i % 251 );
+      }
+      writer.add_to_buffer( payload, sizeof( uint8 ) * payload.length );
       writer.close( );
 
       return null;
@@ -330,6 +337,13 @@ public class TestDMlib
 
       string str_test = reader.read_string( );
       assert( str_test == "Hello World!" );
+
+      uint8[] payload = new uint8[ 16 * 1024 * 1024 ];
+      reader.get_from_buffer( payload, sizeof( uint8 ) * payload.length );
+      for ( int i = 0; i < payload.length; i ++ )
+      {
+        assert( payload[ i ] == (uint8)( i % 251 ) );
+      }
 
       return null;
 #if GLIB_2_32
