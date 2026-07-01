@@ -1372,7 +1372,16 @@ namespace OpenDMLib
 
       protected override void write( uint8[] buf ) throws Error
       {
-        this.conn.output_stream.write( buf );
+        size_t total_written = 0;
+        while ( total_written < buf.length )
+        {
+          size_t written = this.conn.output_stream.write( buf[ total_written : buf.length ] );
+          if ( written == 0 )
+          {
+            throw new OpenDMLibIOErrors.FILE_ERROR( "Error writing to network socket! OutputStream.write returned 0 before the buffer was fully sent." );
+          }
+          total_written += written;
+        }
         this.buffer_index = 0;
       }
 
