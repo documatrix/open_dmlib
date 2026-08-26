@@ -15,12 +15,30 @@ namespace MagickWand
   [CCode (cname="GetMagickModule")]
   public static unowned string getModule( );
 
+  [CCode (free_function="DestroyExceptionInfo", cname="ExceptionInfo")]
+  [Compact]
+  public class ExceptionInfo
+  {
+    [CCode (cname="AcquireExceptionInfo")]
+    public ExceptionInfo( );
+  }
+
+  [Compact]
+  public class Image
+  {
+    [CCode (cname="IdentifyImageGray")]
+    public ImageType identifyImageGray( ExceptionInfo exception );
+  }
+
   [CCode (free_function = "DestroyMagickWand", cname = "MagickWand")]
   [Compact]
   public class MagickWand
   {
     [CCode (cname="NewMagickWand")]
     public MagickWand();
+
+    [CCode (cname="GetImageFromMagickWand")]
+    public unowned Image getImage();
 
     [CCode (cname="MagickReadImage", instance_pos = 0)]
     public bool readImage( string filename );
